@@ -19,18 +19,20 @@
             <a href="index.html" class="logo">
                 Pizzaria Almeida
             </a>
+            <div class="header-actions">
+                <nav class="menu">
+                    <a href="#inicio">Início</a>
+                    <a href="#cardapio">Cardápio</a>
+                    <a href="#sobre">Sobre nós</a>
+                    <a href="#contato">Contato</a>
+                </nav>
 
-            <nav class="menu">
-                <a href="#inicio">Início</a>
-                <a href="#cardapio">Cardápio</a>
-                <a href="#sobre">Sobre nós</a>
-                <a href="#contato">Contato</a>
-            </nav>
+                <button class="cart-button">
+                    🛒
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
 
-            <button class="cart-button">
-                🛒
-                <span class="cart-count">0</span>
-            </button>
 
         </div>
 
@@ -422,8 +424,13 @@
                 <h2>Sobre a Pizzaria Almeida</h2>
 
                 <p>
-                    Sabor, qualidade e aquele carinho especial
-                    em cada pedido.
+                    A Pizzaria Almeida faz parte da região do Jardim Realce,
+                    em Suzano, oferecendo pizzas e opções para diferentes momentos.
+                </p>
+
+                <p>
+                    Nosso objetivo é proporcionar uma experiência saborosa,
+                    prática e especial em cada pedido.
                 </p>
 
             </div>
@@ -443,7 +450,7 @@
                 </p>
 
                 <p>
-                    WhatsApp: (11) 97824-3667
+                    Telefone: (11) 4742-1633
                 </p>
 
                 <p>
@@ -465,6 +472,56 @@
         </p>
 
     </footer>
+
+    <div class="cart-overlay"></div>
+
+    <aside class="cart-panel">
+
+        <div class="cart-header">
+
+            <h2>Seu Carrinho</h2>
+
+            <button class="close-cart">
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="cart-items">
+
+            <p class="cart-empty">
+                Seu carrinho está vazio.
+            </p>
+
+        </div>
+
+
+        <div class="cart-footer">
+
+            <div class="cart-total">
+
+                <span>Subtotal</span>
+
+                <strong>
+                    R$ 0,00
+                </strong>
+
+            </div>
+
+
+            <button class="clear-cart">
+                Limpar carrinho
+            </button>
+
+
+            <button class="checkout-button">
+                Continuar para finalizar
+            </button>
+
+        </div>
+
+    </aside>
 
 
     <script src="js/script.js"></script>
