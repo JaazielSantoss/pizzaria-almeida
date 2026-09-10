@@ -1,6 +1,8 @@
 /* =========================================
    PIZZARIA ALMEIDA
+
    CARRINHO + SUPABASE + CHECKOUT
+   CATEGORIAS DINÂMICAS + REALTIME
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -44,37 +46,47 @@ document.addEventListener("DOMContentLoaded", () => {
     const productsContainer =
         document.querySelector(".menu-products");
 
-    const filterButtons =
-        document.querySelectorAll(
-            ".menu-categories button"
-        );
+    const categoriesContainer =
+        document.querySelector(".menu-categories");
 
 
     /* =========================================
        ESTADO DO CARRINHO
     ========================================= */
 
-    let cart = loadLocalStorage(
-        "pizzariaAlmeidaCart",
-        []
-    );
+    let cart =
+        loadLocalStorage(
+            "pizzariaAlmeidaCart",
+            []
+        );
 
 
     /* =========================================
        DADOS DO CLIENTE
     ========================================= */
 
-    let customerData = loadLocalStorage(
-        "pizzariaAlmeidaCustomer",
-        {}
-    );
+    let customerData =
+        loadLocalStorage(
+            "pizzariaAlmeidaCustomer",
+            {}
+        );
 
 
     /* =========================================
        FILTRO ATUAL
     ========================================= */
 
-    let currentFilter = "todos";
+    let currentFilter =
+        "todos";
+
+
+    /* =========================================
+       DADOS DO SUPABASE
+    ========================================= */
+
+    let supabaseProducts = [];
+
+    let supabaseCategories = [];
 
 
     /* =========================================
@@ -112,23 +124,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       LER LOCALSTORAGE COM SEGURANÇA
+       LOCALSTORAGE
     ========================================= */
 
-    function loadLocalStorage(key, fallback) {
+    function loadLocalStorage(
+        key,
+        fallback
+    ) {
 
         try {
 
             const saved =
-                localStorage.getItem(key);
+                localStorage.getItem(
+                    key
+                );
 
 
             if (!saved) {
+
                 return fallback;
+
             }
 
 
-            return JSON.parse(saved);
+            return JSON.parse(
+                saved
+            );
 
         } catch (error) {
 
@@ -136,6 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 `Erro ao carregar ${key}:`,
                 error
             );
+
 
             return fallback;
 
@@ -235,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       EVENTO DO BOTÃO DO CARRINHO
+       EVENTO BOTÃO CARRINHO
     ========================================= */
 
     if (cartButton) {
@@ -249,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       EVENTO FECHAR
+       EVENTO FECHAR CARRINHO
     ========================================= */
 
     if (closeCartButton) {
@@ -263,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       CLICAR FORA DO CARRINHO
+       CLICAR FORA
     ========================================= */
 
     if (cartOverlay) {
@@ -274,13 +296,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     }
-
-
-    /* =========================================
-       SUPABASE
-    ========================================= */
-
-    let supabaseProducts = [];
 
 
     /* =========================================
@@ -354,10 +369,279 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+
     /* =========================================
-   SUPABASE REALTIME
-   ATUALIZAÇÃO AUTOMÁTICA DOS PRODUTOS
-========================================= */
+       CARREGAR CATEGORIAS DO SUPABASE
+    ========================================= */
+
+    async function loadCategoriesFromSupabase() {
+
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            console.error(
+                "supabaseClient não foi encontrado."
+            );
+
+            return;
+
+        }
+
+
+        if (!categoriesContainer) {
+
+            return;
+
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .select(
+                    "id, name, slug, active"
+                )
+                .eq(
+                    "active",
+                    true
+                )
+                .order(
+                    "id",
+                    {
+                        ascending: true
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar categorias:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        supabaseCategories =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        /*
+         * Se a categoria que estava selecionada
+         * deixou de existir ou foi desativada,
+         * voltamos para Todos.
+         */
+
+        if (
+            currentFilter !==
+            "todos"
+        ) {
+
+            const categoryExists =
+                supabaseCategories.some(
+                    (category) =>
+                        category.slug ===
+                        currentFilter
+                );
+
+
+            if (!categoryExists) {
+
+                currentFilter =
+                    "todos";
+
+            }
+
+        }
+
+
+        renderCategoryFilters();
+
+    }
+
+
+    /* =========================================
+       RENDERIZAR FILTROS
+    ========================================= */
+
+    function renderCategoryFilters() {
+
+        if (!categoriesContainer) {
+
+            return;
+
+        }
+
+
+        categoriesContainer.innerHTML =
+            "";
+
+
+        /* =========================================
+           TODOS
+        ========================================= */
+
+        const allButton =
+            document.createElement(
+                "button"
+            );
+
+
+        allButton.type =
+            "button";
+
+
+        allButton.dataset.filter =
+            "todos";
+
+
+        allButton.textContent =
+            "Todos";
+
+
+        if (
+            currentFilter ===
+            "todos"
+        ) {
+
+            allButton.classList.add(
+                "active"
+            );
+
+        }
+
+
+        allButton.addEventListener(
+            "click",
+            () => {
+
+                currentFilter =
+                    "todos";
+
+
+                updateFilterButtons();
+
+                applyCurrentFilter();
+
+            }
+        );
+
+
+        categoriesContainer.appendChild(
+            allButton
+        );
+
+
+        /* =========================================
+           CATEGORIAS
+        ========================================= */
+
+        supabaseCategories.forEach(
+            (category) => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.type =
+                    "button";
+
+
+                button.dataset.filter =
+                    category.slug;
+
+
+                button.textContent =
+                    category.name;
+
+
+                if (
+                    currentFilter ===
+                    category.slug
+                ) {
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                }
+
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        currentFilter =
+                            category.slug;
+
+
+                        updateFilterButtons();
+
+                        applyCurrentFilter();
+
+                    }
+                );
+
+
+                categoriesContainer.appendChild(
+                    button
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       ATUALIZAR BOTÃO ATIVO
+    ========================================= */
+
+    function updateFilterButtons() {
+
+        if (!categoriesContainer) {
+
+            return;
+
+        }
+
+
+        const buttons =
+            categoriesContainer.querySelectorAll(
+                "button"
+            );
+
+
+        buttons.forEach(
+            (button) => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.filter ===
+                        currentFilter
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       REALTIME DOS PRODUTOS
+    ========================================= */
 
     function subscribeToProductsChanges() {
 
@@ -375,43 +659,96 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        const channel =
-            supabaseClient
-                .channel(
-                    "products-realtime"
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "*",
-                        schema: "public",
-                        table: "products"
-                    },
-                    async (payload) => {
+        supabaseClient
+            .channel(
+                "products-realtime"
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "products"
+                },
+                async (payload) => {
 
-                        console.log(
-                            "Alteração recebida nos produtos:",
-                            payload
-                        );
-
-
-                        await loadProductsFromSupabase();
-
-                    }
-                )
-                .subscribe(
-                    (status) => {
-
-                        console.log(
-                            "Realtime products:",
-                            status
-                        );
-
-                    }
-                );
+                    console.log(
+                        "Alteração recebida nos produtos:",
+                        payload
+                    );
 
 
-        return channel;
+                    await loadProductsFromSupabase();
+
+                }
+            )
+            .subscribe(
+                (status) => {
+
+                    console.log(
+                        "Realtime products:",
+                        status
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* =========================================
+       REALTIME DAS CATEGORIAS
+    ========================================= */
+
+    function subscribeToCategoriesChanges() {
+
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            console.error(
+                "supabaseClient não foi encontrado para o Realtime das categorias."
+            );
+
+            return;
+
+        }
+
+
+        supabaseClient
+            .channel(
+                "categories-realtime"
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "categories"
+                },
+                async (payload) => {
+
+                    console.log(
+                        "Alteração recebida nas categorias:",
+                        payload
+                    );
+
+
+                    await loadCategoriesFromSupabase();
+
+                }
+            )
+            .subscribe(
+                (status) => {
+
+                    console.log(
+                        "Realtime categories:",
+                        status
+                    );
+
+                }
+            );
 
     }
 
@@ -420,10 +757,14 @@ document.addEventListener("DOMContentLoaded", () => {
        RENDERIZAR PRODUTOS
     ========================================= */
 
-    function renderProducts(products) {
+    function renderProducts(
+        products
+    ) {
 
         if (!productsContainer) {
+
             return;
+
         }
 
 
@@ -431,182 +772,184 @@ document.addEventListener("DOMContentLoaded", () => {
             "";
 
 
-        products.forEach((product) => {
+        products.forEach(
+            (product) => {
 
-            const card =
-                document.createElement(
-                    "article"
+                const card =
+                    document.createElement(
+                        "article"
+                    );
+
+
+                card.className =
+                    "product-card";
+
+
+                card.dataset.category =
+                    product.category;
+
+
+                card.dataset.product =
+                    product.slug;
+
+
+                /* =========================================
+                   IMAGEM
+                ========================================= */
+
+                const imageContainer =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                imageContainer.className =
+                    "product-image";
+
+
+                const image =
+                    document.createElement(
+                        "img"
+                    );
+
+
+                image.src =
+                    product.image_url;
+
+
+                image.alt =
+                    product.name;
+
+
+                image.loading =
+                    "lazy";
+
+
+                imageContainer.appendChild(
+                    image
                 );
 
 
-            card.className =
-                "product-card";
+                /* =========================================
+                   CONTEÚDO
+                ========================================= */
+
+                const content =
+                    document.createElement(
+                        "div"
+                    );
 
 
-            card.dataset.category =
-                product.category;
+                content.className =
+                    "product-content";
 
 
-            card.dataset.product =
-                product.slug;
+                const title =
+                    document.createElement(
+                        "h3"
+                    );
 
 
-            /* =========================================
-               IMAGEM
-            ========================================= */
+                title.textContent =
+                    product.name;
 
-            const imageContainer =
-                document.createElement(
-                    "div"
+
+                const description =
+                    document.createElement(
+                        "p"
+                    );
+
+
+                description.textContent =
+                    product.description ||
+                    "";
+
+
+                /* =========================================
+                   RODAPÉ
+                ========================================= */
+
+                const footer =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                footer.className =
+                    "product-footer";
+
+
+                const price =
+                    document.createElement(
+                        "strong"
+                    );
+
+
+                price.textContent =
+                    formatPrice(
+                        product.price
+                    );
+
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.className =
+                    "add-product";
+
+
+                button.type =
+                    "button";
+
+
+                button.textContent =
+                    "Adicionar";
+
+
+                footer.appendChild(
+                    price
                 );
 
 
-            imageContainer.className =
-                "product-image";
-
-
-            const image =
-                document.createElement(
-                    "img"
+                footer.appendChild(
+                    button
                 );
 
 
-            image.src =
-                product.image_url;
-
-
-            image.alt =
-                product.name;
-
-
-            image.loading =
-                "lazy";
-
-
-            imageContainer.appendChild(
-                image
-            );
-
-
-            /* =========================================
-               CONTEÚDO
-            ========================================= */
-
-            const content =
-                document.createElement(
-                    "div"
+                content.appendChild(
+                    title
                 );
 
 
-            content.className =
-                "product-content";
-
-
-            const title =
-                document.createElement(
-                    "h3"
+                content.appendChild(
+                    description
                 );
 
 
-            title.textContent =
-                product.name;
-
-
-            const description =
-                document.createElement(
-                    "p"
+                content.appendChild(
+                    footer
                 );
 
 
-            description.textContent =
-                product.description ||
-                "";
-
-
-            /* =========================================
-               RODAPÉ
-            ========================================= */
-
-            const footer =
-                document.createElement(
-                    "div"
+                card.appendChild(
+                    imageContainer
                 );
 
 
-            footer.className =
-                "product-footer";
-
-
-            const price =
-                document.createElement(
-                    "strong"
+                card.appendChild(
+                    content
                 );
 
 
-            price.textContent =
-                formatPrice(
-                    product.price
+                productsContainer.appendChild(
+                    card
                 );
 
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.className =
-                "add-product";
-
-
-            button.type =
-                "button";
-
-
-            button.textContent =
-                "Adicionar";
-
-
-            footer.appendChild(
-                price
-            );
-
-
-            footer.appendChild(
-                button
-            );
-
-
-            content.appendChild(
-                title
-            );
-
-
-            content.appendChild(
-                description
-            );
-
-
-            content.appendChild(
-                footer
-            );
-
-
-            card.appendChild(
-                imageContainer
-            );
-
-
-            card.appendChild(
-                content
-            );
-
-
-            productsContainer.appendChild(
-                card
-            );
-
-        });
+            }
+        );
 
 
         initializeProductButtons();
@@ -623,66 +966,71 @@ document.addEventListener("DOMContentLoaded", () => {
     function initializeProductButtons() {
 
         const addButtons =
-            productsContainer
-                ?.querySelectorAll(
-                    ".add-product"
-                );
+            productsContainer?.querySelectorAll(
+                ".add-product"
+            );
 
 
         if (!addButtons) {
+
             return;
+
         }
 
 
-        addButtons.forEach((button) => {
+        addButtons.forEach(
+            (button) => {
 
-            button.addEventListener(
-                "click",
-                () => {
+                button.addEventListener(
+                    "click",
+                    () => {
 
-                    const productCard =
-                        button.closest(
-                            ".product-card"
+                        const productCard =
+                            button.closest(
+                                ".product-card"
+                            );
+
+
+                        if (!productCard) {
+
+                            return;
+
+                        }
+
+
+                        const productSlug =
+                            productCard.dataset.product;
+
+
+                        const product =
+                            supabaseProducts.find(
+                                (item) =>
+                                    item.slug ===
+                                    productSlug
+                            );
+
+
+                        if (!product) {
+
+                            console.error(
+                                "Produto não encontrado:",
+                                productSlug
+                            );
+
+                            return;
+
+                        }
+
+
+                        addProductToCart(
+                            product
                         );
 
-
-                    if (!productCard) {
-                        return;
                     }
+                );
 
-
-                    const productId =
-                        productCard.dataset.product;
-
-
-                    const product =
-                        supabaseProducts.find(
-                            (item) =>
-                                item.slug ===
-                                productId
-                        );
-
-
-                    if (!product) {
-
-                        console.error(
-                            "Produto não encontrado:",
-                            productId
-                        );
-
-                        return;
-
-                    }
-
-
-                    addProductToCart(
-                        product
-                    );
-
-                }
-            );
-
-        });
+            }
+        );
 
     }
 
@@ -691,35 +1039,44 @@ document.addEventListener("DOMContentLoaded", () => {
        ADICIONAR PRODUTO AO CARRINHO
     ========================================= */
 
-    function addProductToCart(product) {
+    function addProductToCart(
+        product
+    ) {
 
         const existingProduct =
             cart.find(
                 (item) =>
-                    item.id === product.slug
+                    item.id ===
+                    product.slug
             );
 
 
         if (existingProduct) {
 
-            existingProduct.quantity += 1;
+            existingProduct.quantity +=
+                1;
 
         } else {
 
             cart.push({
 
-                id: product.slug,
+                id:
+                    product.slug,
 
-                name: product.name,
+                name:
+                    product.name,
 
                 description:
                     product.description ||
                     "",
 
                 price:
-                    Number(product.price),
+                    Number(
+                        product.price
+                    ),
 
-                quantity: 1
+                quantity:
+                    1
 
             });
 
@@ -742,12 +1099,19 @@ document.addEventListener("DOMContentLoaded", () => {
     function calculateSubtotal() {
 
         return cart.reduce(
-            (total, product) => {
+            (
+                total,
+                product
+            ) => {
 
                 return total +
                     (
-                        Number(product.price) *
-                        Number(product.quantity)
+                        Number(
+                            product.price
+                        ) *
+                        Number(
+                            product.quantity
+                        )
                     );
 
             },
@@ -765,10 +1129,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const totalItems =
             cart.reduce(
-                (total, product) => {
+                (
+                    total,
+                    product
+                ) => {
 
                     return total +
-                        Number(product.quantity);
+                        Number(
+                            product.quantity
+                        );
 
                 },
                 0
@@ -792,7 +1161,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateCartSubtotal() {
 
         if (!cartSubtotalElement) {
+
             return;
+
         }
 
 
@@ -895,7 +1266,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderCart() {
 
         if (!cartItemsContainer) {
+
             return;
+
         }
 
 
@@ -933,177 +1306,222 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        cart.forEach((product) => {
+        cart.forEach(
+            (product) => {
 
-            const cartItem =
-                document.createElement(
-                    "div"
+                const cartItem =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                cartItem.className =
+                    "cart-item";
+
+
+                /* =========================================
+                   INFORMAÇÕES
+                ========================================= */
+
+                const productInfo =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                productInfo.className =
+                    "cart-product-info";
+
+
+                const productName =
+                    document.createElement(
+                        "h3"
+                    );
+
+
+                productName.textContent =
+                    product.name;
+
+
+                const productPrice =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                productPrice.textContent =
+                    formatPrice(
+                        Number(
+                            product.price
+                        ) *
+                        Number(
+                            product.quantity
+                        )
+                    );
+
+
+                productInfo.appendChild(
+                    productName
                 );
 
 
-            cartItem.className =
-                "cart-item";
-
-
-            /* =========================================
-               INFORMAÇÕES
-            ========================================= */
-
-            const productInfo =
-                document.createElement(
-                    "div"
+                productInfo.appendChild(
+                    productPrice
                 );
 
 
-            productInfo.className =
-                "cart-product-info";
+                /* =========================================
+                   CONTROLES
+                ========================================= */
+
+                const controls =
+                    document.createElement(
+                        "div"
+                    );
 
 
-            const productName =
-                document.createElement(
-                    "h3"
+                controls.className =
+                    "cart-product-controls";
+
+
+                const decreaseButton =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                decreaseButton.type =
+                    "button";
+
+
+                decreaseButton.textContent =
+                    "−";
+
+
+                decreaseButton.setAttribute(
+                    "aria-label",
+                    `Diminuir quantidade de ${product.name}`
                 );
 
 
-            productName.textContent =
-                product.name;
+                const quantity =
+                    document.createElement(
+                        "span"
+                    );
 
 
-            const productPrice =
-                document.createElement(
-                    "span"
+                quantity.textContent =
+                    product.quantity;
+
+
+                const increaseButton =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                increaseButton.type =
+                    "button";
+
+
+                increaseButton.textContent =
+                    "+";
+
+
+                increaseButton.setAttribute(
+                    "aria-label",
+                    `Aumentar quantidade de ${product.name}`
                 );
 
 
-            productPrice.textContent =
-                formatPrice(
-                    product.price *
-                    product.quantity
+                const removeButton =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                removeButton.type =
+                    "button";
+
+
+                removeButton.className =
+                    "remove-item";
+
+
+                removeButton.appendChild(
+                    createTrashIcon()
                 );
 
 
-            productInfo.appendChild(
-                productName
-            );
-
-
-            productInfo.appendChild(
-                productPrice
-            );
-
-
-            /* =========================================
-               CONTROLES
-            ========================================= */
-
-            const controls =
-                document.createElement(
-                    "div"
+                removeButton.setAttribute(
+                    "aria-label",
+                    `Remover ${product.name}`
                 );
 
 
-            controls.className =
-                "cart-product-controls";
+                /* =========================================
+                   DIMINUIR
+                ========================================= */
+
+                decreaseButton.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            product.quantity >
+                            1
+                        ) {
+
+                            product.quantity -=
+                                1;
+
+                        } else {
+
+                            cart =
+                                cart.filter(
+                                    (item) =>
+                                        item.id !==
+                                        product.id
+                                );
+
+                        }
 
 
-            /* DIMINUIR */
+                        saveCart();
 
-            const decreaseButton =
-                document.createElement(
-                    "button"
+                        renderCart();
+
+                    }
                 );
 
 
-            decreaseButton.type =
-                "button";
+                /* =========================================
+                   AUMENTAR
+                ========================================= */
+
+                increaseButton.addEventListener(
+                    "click",
+                    () => {
+
+                        product.quantity +=
+                            1;
 
 
-            decreaseButton.textContent =
-                "−";
+                        saveCart();
 
+                        renderCart();
 
-            decreaseButton.setAttribute(
-                "aria-label",
-                `Diminuir quantidade de ${product.name}`
-            );
-
-
-            /* QUANTIDADE */
-
-            const quantity =
-                document.createElement(
-                    "span"
+                    }
                 );
 
 
-            quantity.textContent =
-                product.quantity;
+                /* =========================================
+                   REMOVER
+                ========================================= */
 
-
-            /* AUMENTAR */
-
-            const increaseButton =
-                document.createElement(
-                    "button"
-                );
-
-
-            increaseButton.type =
-                "button";
-
-
-            increaseButton.textContent =
-                "+";
-
-
-            increaseButton.setAttribute(
-                "aria-label",
-                `Aumentar quantidade de ${product.name}`
-            );
-
-
-            /* LIXEIRA */
-
-            const removeButton =
-                document.createElement(
-                    "button"
-                );
-
-
-            removeButton.type =
-                "button";
-
-
-            removeButton.className =
-                "remove-item";
-
-
-            removeButton.appendChild(
-                createTrashIcon()
-            );
-
-
-            removeButton.setAttribute(
-                "aria-label",
-                `Remover ${product.name}`
-            );
-
-
-            /* =========================================
-               DIMINUIR
-            ========================================= */
-
-            decreaseButton.addEventListener(
-                "click",
-                () => {
-
-                    if (
-                        product.quantity > 1
-                    ) {
-
-                        product.quantity -= 1;
-
-                    } else {
+                removeButton.addEventListener(
+                    "click",
+                    () => {
 
                         cart =
                             cart.filter(
@@ -1112,94 +1530,51 @@ document.addEventListener("DOMContentLoaded", () => {
                                     product.id
                             );
 
+
+                        saveCart();
+
+                        renderCart();
+
                     }
+                );
 
 
-                    saveCart();
-
-                    renderCart();
-
-                }
-            );
+                controls.appendChild(
+                    decreaseButton
+                );
 
 
-            /* =========================================
-               AUMENTAR
-            ========================================= */
-
-            increaseButton.addEventListener(
-                "click",
-                () => {
-
-                    product.quantity += 1;
-
-                    saveCart();
-
-                    renderCart();
-
-                }
-            );
+                controls.appendChild(
+                    quantity
+                );
 
 
-            /* =========================================
-               REMOVER
-            ========================================= */
-
-            removeButton.addEventListener(
-                "click",
-                () => {
-
-                    cart =
-                        cart.filter(
-                            (item) =>
-                                item.id !==
-                                product.id
-                        );
+                controls.appendChild(
+                    increaseButton
+                );
 
 
-                    saveCart();
-
-                    renderCart();
-
-                }
-            );
+                controls.appendChild(
+                    removeButton
+                );
 
 
-            controls.appendChild(
-                decreaseButton
-            );
+                cartItem.appendChild(
+                    productInfo
+                );
 
 
-            controls.appendChild(
-                quantity
-            );
+                cartItem.appendChild(
+                    controls
+                );
 
 
-            controls.appendChild(
-                increaseButton
-            );
+                cartItemsContainer.appendChild(
+                    cartItem
+                );
 
-
-            controls.appendChild(
-                removeButton
-            );
-
-
-            cartItem.appendChild(
-                productInfo
-            );
-
-
-            cartItem.appendChild(
-                controls
-            );
-
-
-            cartItemsContainer.appendChild(
-                cartItem
-            );
-
-        });
+            }
+        );
 
 
         updateCartCount();
@@ -1220,7 +1595,9 @@ document.addEventListener("DOMContentLoaded", () => {
             () => {
 
                 if (cart.length === 0) {
+
                     return;
+
                 }
 
 
@@ -1231,7 +1608,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 if (!confirmed) {
+
                     return;
+
                 }
 
 
@@ -1249,52 +1628,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       FILTROS
-    ========================================= */
-
-    filterButtons.forEach((button) => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                currentFilter =
-                    button.dataset.filter ||
-                    "todos";
-
-
-                filterButtons.forEach(
-                    (filterButton) => {
-
-                        filterButton.classList.remove(
-                            "active"
-                        );
-
-                    }
-                );
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                applyCurrentFilter();
-
-            }
-        );
-
-    });
-
-
-    /* =========================================
        APLICAR FILTRO ATUAL
     ========================================= */
 
     function applyCurrentFilter() {
 
         if (!productsContainer) {
+
             return;
+
         }
 
 
@@ -1304,23 +1646,27 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        cards.forEach((card) => {
+        cards.forEach(
+            (card) => {
 
-            const category =
-                card.dataset.category;
-
-
-            const showCard =
-                currentFilter === "todos" ||
-                category === currentFilter;
+                const category =
+                    card.dataset.category;
 
 
-            card.style.display =
-                showCard
-                    ? "flex"
-                    : "none";
+                const showCard =
+                    currentFilter ===
+                        "todos" ||
+                    category ===
+                        currentFilter;
 
-        });
+
+                card.style.display =
+                    showCard
+                        ? "flex"
+                        : "none";
+
+            }
+        );
 
     }
 
@@ -1329,7 +1675,8 @@ document.addEventListener("DOMContentLoaded", () => {
        CHECKOUT
     ========================================= */
 
-    let checkoutOverlay = null;
+    let checkoutOverlay =
+        null;
 
 
     /* =========================================
@@ -1339,7 +1686,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function createCheckout() {
 
         if (checkoutOverlay) {
+
             return;
+
         }
 
 
@@ -1394,9 +1743,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerName"
-                            >
+                            <label for="customerName">
                                 Nome
                             </label>
 
@@ -1413,9 +1760,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerPhone"
-                            >
+                            <label for="customerPhone">
                                 WhatsApp
                             </label>
 
@@ -1432,9 +1777,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerCep"
-                            >
+                            <label for="customerCep">
                                 CEP
                             </label>
 
@@ -1452,9 +1795,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerStreet"
-                            >
+                            <label for="customerStreet">
                                 Rua / Avenida
                             </label>
 
@@ -1471,9 +1812,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerNumber"
-                            >
+                            <label for="customerNumber">
                                 Número
                             </label>
 
@@ -1490,9 +1829,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerComplement"
-                            >
+                            <label for="customerComplement">
                                 Complemento
                             </label>
 
@@ -1508,9 +1845,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerNeighborhood"
-                            >
+                            <label for="customerNeighborhood">
                                 Bairro
                             </label>
 
@@ -1527,9 +1862,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerCity"
-                            >
+                            <label for="customerCity">
                                 Cidade
                             </label>
 
@@ -1546,9 +1879,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="customerState"
-                            >
+                            <label for="customerState">
                                 Estado
                             </label>
 
@@ -1565,9 +1896,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label
-                                for="orderNote"
-                            >
+                            <label for="orderNote">
                                 Observação
                             </label>
 
@@ -1651,9 +1980,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <div class="cash-change">
 
-                        <label
-                            for="changeFor"
-                        >
+                        <label for="changeFor">
                             Troco para
                         </label>
 
@@ -1844,14 +2171,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     step.classList.toggle(
                         "active",
                         currentStep ===
-                        stepNumber
+                            stepNumber
                     );
 
                 }
             );
 
 
-            if (stepNumber === 3) {
+            if (
+                stepNumber ===
+                3
+            ) {
 
                 renderReview();
 
@@ -1861,7 +2191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           SALVAR DADOS DO CLIENTE
+           SALVAR CLIENTE
         ========================================= */
 
         customerForm.addEventListener(
@@ -1966,7 +2296,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 saveCustomerData();
 
-                showCheckoutStep(2);
+                showCheckoutStep(
+                    2
+                );
 
             }
         );
@@ -1980,7 +2312,9 @@ document.addEventListener("DOMContentLoaded", () => {
             "click",
             () => {
 
-                showCheckoutStep(1);
+                showCheckoutStep(
+                    1
+                );
 
             }
         );
@@ -2017,7 +2351,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 saveCustomerData();
 
-                showCheckoutStep(3);
+
+                showCheckoutStep(
+                    3
+                );
 
             }
         );
@@ -2031,7 +2368,9 @@ document.addEventListener("DOMContentLoaded", () => {
             "click",
             () => {
 
-                showCheckoutStep(2);
+                showCheckoutStep(
+                    2
+                );
 
             }
         );
@@ -2065,6 +2404,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Adicione pelo menos um produto ao carrinho."
             );
 
+
             return;
 
         }
@@ -2097,7 +2437,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function closeCheckout() {
 
         if (!checkoutOverlay) {
+
             return;
+
         }
 
 
@@ -2114,38 +2456,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       CARREGAR DADOS DO CLIENTE
+       CARREGAR DADOS CLIENTE
     ========================================= */
 
     function loadCustomerData() {
 
         if (!checkoutOverlay) {
+
             return;
+
         }
 
 
         const fields = {
 
             customerName:
-                customerData.name || "",
+                customerData.name ||
+                "",
 
             customerPhone:
-                customerData.phone || "",
+                customerData.phone ||
+                "",
 
             customerCep:
-                customerData.cep || "",
+                customerData.cep ||
+                "",
 
             customerStreet:
-                customerData.street || "",
+                customerData.street ||
+                "",
 
             customerNumber:
-                customerData.number || "",
+                customerData.number ||
+                "",
 
             customerComplement:
-                customerData.complement || "",
+                customerData.complement ||
+                "",
 
             customerNeighborhood:
-                customerData.neighborhood || "",
+                customerData.neighborhood ||
+                "",
 
             customerCity:
                 customerData.city ||
@@ -2156,12 +2507,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 "SP",
 
             orderNote:
-                customerData.note || ""
+                customerData.note ||
+                ""
 
         };
 
 
-        Object.entries(fields).forEach(
+        Object.entries(
+            fields
+        ).forEach(
             ([id, value]) => {
 
                 const field =
@@ -2219,7 +2573,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderReview() {
 
         if (!checkoutOverlay) {
+
             return;
+
         }
 
 
@@ -2263,56 +2619,58 @@ document.addEventListener("DOMContentLoaded", () => {
             "";
 
 
-        cart.forEach((product) => {
+        cart.forEach(
+            (product) => {
 
-            const item =
-                document.createElement(
-                    "div"
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "review-item";
+
+
+                const itemName =
+                    document.createElement(
+                        "strong"
+                    );
+
+
+                itemName.textContent =
+                    `${product.quantity}x ${product.name}`;
+
+
+                const itemPrice =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                itemPrice.textContent =
+                    formatPrice(
+                        product.price *
+                        product.quantity
+                    );
+
+
+                item.appendChild(
+                    itemName
                 );
 
 
-            item.className =
-                "review-item";
-
-
-            const itemName =
-                document.createElement(
-                    "strong"
+                item.appendChild(
+                    itemPrice
                 );
 
 
-            itemName.textContent =
-                `${product.quantity}x ${product.name}`;
-
-
-            const itemPrice =
-                document.createElement(
-                    "span"
+                reviewItems.appendChild(
+                    item
                 );
 
-
-            itemPrice.textContent =
-                formatPrice(
-                    product.price *
-                    product.quantity
-                );
-
-
-            item.appendChild(
-                itemName
-            );
-
-
-            item.appendChild(
-                itemPrice
-            );
-
-
-            reviewItems.appendChild(
-                item
-            );
-
-        });
+            }
+        );
 
 
         reviewAddress.innerHTML = `
@@ -2321,40 +2679,57 @@ document.addEventListener("DOMContentLoaded", () => {
                 Endereço de entrega
             </h4>
 
+
             <p>
+
                 ${escapeHtml(
-            customerData.street
-        )},
+                    customerData.street
+                )},
+
                 ${escapeHtml(
-            customerData.number
-        )}
-                ${customerData.complement
-                ? ` - ${escapeHtml(
+                    customerData.number
+                )}
+
+                ${
                     customerData.complement
-                )}`
-                : ""
-            }
+                        ? ` - ${escapeHtml(
+                            customerData.complement
+                        )}`
+                        : ""
+                }
+
             </p>
 
+
             <p>
+
                 ${escapeHtml(
-                customerData.neighborhood
-            )}
+                    customerData.neighborhood
+                )}
+
                 -
+
                 ${escapeHtml(
-                customerData.city
-            )}
+                    customerData.city
+                )}
+
                 /
+
                 ${escapeHtml(
-                customerData.state
-            )}
+                    customerData.state
+                )}
+
             </p>
 
+
             <p>
+
                 CEP:
+
                 ${escapeHtml(
-                customerData.cep
-            )}
+                    customerData.cep
+                )}
+
             </p>
 
         `;
@@ -2366,25 +2741,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 Forma de pagamento
             </h4>
 
+
             <p>
+
                 ${escapeHtml(
-            customerData.payment ||
-            "Pix"
-        )}
+                    customerData.payment ||
+                    "Pix"
+                )}
+
             </p>
 
-            ${customerData.payment ===
-                "Dinheiro" &&
+
+            ${
+                customerData.payment ===
+                    "Dinheiro" &&
                 customerData.changeFor
-                ? `
+                    ? `
+
                         <p>
+
                             Troco para:
+
                             ${escapeHtml(
-                    customerData.changeFor
-                )}
+                                customerData.changeFor
+                            )}
+
                         </p>
+
                     `
-                : ""
+                    : ""
             }
 
         `;
@@ -2404,11 +2789,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function sendOrderToWhatsApp() {
 
-        /*
-         * TROQUE PELO WHATSAPP REAL
-         * DA PIZZARIA ALMEIDA.
-         */
-
         const whatsappNumber =
             "5511999999999";
 
@@ -2425,15 +2805,17 @@ document.addEventListener("DOMContentLoaded", () => {
             "*PEDIDO*\n";
 
 
-        cart.forEach((product) => {
+        cart.forEach(
+            (product) => {
 
-            message +=
-                `${product.quantity}x ${product.name} - ${formatPrice(
-                    product.price *
-                    product.quantity
-                )}\n`;
+                message +=
+                    `${product.quantity}x ${product.name} - ${formatPrice(
+                        product.price *
+                        product.quantity
+                    )}\n`;
 
-        });
+            }
+        );
 
 
         message +=
@@ -2484,7 +2866,9 @@ document.addEventListener("DOMContentLoaded", () => {
             `\nCEP: ${customerData.cep}`;
 
 
-        if (customerData.note) {
+        if (
+            customerData.note
+        ) {
 
             message +=
                 `\n\n*OBSERVAÇÃO*\n${customerData.note}`;
@@ -2498,7 +2882,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (
             customerData.payment ===
-            "Dinheiro" &&
+                "Dinheiro" &&
             customerData.changeFor
         ) {
 
@@ -2561,7 +2945,10 @@ document.addEventListener("DOMContentLoaded", () => {
         "keydown",
         (event) => {
 
-            if (event.key === "Escape") {
+            if (
+                event.key ===
+                "Escape"
+            ) {
 
                 closeCart();
 
@@ -2586,13 +2973,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+
     /* =========================================
        INICIALIZAÇÃO
     ========================================= */
 
     renderCart();
 
+    loadCategoriesFromSupabase();
+
     loadProductsFromSupabase();
+
+    subscribeToCategoriesChanges();
 
     subscribeToProductsChanges();
 

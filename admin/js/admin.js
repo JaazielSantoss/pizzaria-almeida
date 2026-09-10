@@ -28,6 +28,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dashboardCards =
         document.querySelectorAll(".admin-card-button");
 
+    const categoriesAdminList =
+        document.querySelector("#categoriesAdminList");
+
+    const newCategoryButton =
+        document.querySelector("#newCategoryButton");
+
 
     /* =========================================
        DASHBOARD - CARDS CLICÁVEIS
@@ -35,21 +41,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     dashboardCards.forEach((card) => {
 
-        card.addEventListener("click", () => {
+        card.addEventListener(
+            "click",
+            () => {
 
-            const sectionName =
-                card.dataset.section;
+                const sectionName =
+                    card.dataset.section;
 
-            const navButton =
-                document.querySelector(
-                    `.admin-nav-item[data-section="${sectionName}"]`
-                );
 
-            if (navButton) {
-                navButton.click();
+                const navButton =
+                    document.querySelector(
+                        `.admin-nav-item[data-section="${sectionName}"]`
+                    );
+
+
+                if (navButton) {
+
+                    navButton.click();
+
+                }
+
             }
-
-        });
+        );
 
     });
 
@@ -60,44 +73,96 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     navItems.forEach((button) => {
 
-        button.addEventListener("click", () => {
+        button.addEventListener(
+            "click",
+            () => {
 
-            const sectionName =
-                button.dataset.section;
+                const sectionName =
+                    button.dataset.section;
 
-            navItems.forEach((item) => {
-                item.classList.remove("active");
-            });
 
-            sections.forEach((section) => {
-                section.classList.remove("active");
-            });
+                navItems.forEach((item) => {
 
-            button.classList.add("active");
+                    item.classList.remove(
+                        "active"
+                    );
 
-            const selectedSection =
-                document.querySelector(
-                    `#section-${sectionName}`
+                });
+
+
+                sections.forEach((section) => {
+
+                    section.classList.remove(
+                        "active"
+                    );
+
+                });
+
+
+                button.classList.add(
+                    "active"
                 );
 
-            if (selectedSection) {
-                selectedSection.classList.add("active");
+
+                const selectedSection =
+                    document.querySelector(
+                        `#section-${sectionName}`
+                    );
+
+
+                if (selectedSection) {
+
+                    selectedSection.classList.add(
+                        "active"
+                    );
+
+                }
+
+
+                const titles = {
+
+                    dashboard:
+                        "Dashboard",
+
+                    products:
+                        "Produtos",
+
+                    categories:
+                        "Categorias",
+
+                    orders:
+                        "Pedidos",
+
+                    customers:
+                        "Clientes"
+
+                };
+
+
+                if (pageTitle) {
+
+                    pageTitle.textContent =
+                        titles[sectionName] ||
+                        "Dashboard";
+
+                }
+
+
+                /* =========================================
+                   CARREGAR CATEGORIAS AO ABRIR SEÇÃO
+                ========================================= */
+
+                if (
+                    sectionName ===
+                    "categories"
+                ) {
+
+                    loadCategories();
+
+                }
+
             }
-
-            const titles = {
-                dashboard: "Dashboard",
-                products: "Produtos",
-                orders: "Pedidos",
-                customers: "Clientes"
-            };
-
-            if (pageTitle) {
-                pageTitle.textContent =
-                    titles[sectionName] ||
-                    "Dashboard";
-            }
-
-        });
+        );
 
     });
 
@@ -112,8 +177,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             "click",
             async () => {
 
-                const { error } =
-                    await supabaseClient.auth.signOut();
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .auth
+                        .signOut();
+
 
                 if (error) {
 
@@ -125,6 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
 
                 }
+
 
                 window.location.href =
                     "index.html";
@@ -145,10 +216,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+
         productsAdminList.innerHTML =
             "<p>Carregando produtos...</p>";
 
-        const { data, error } =
+
+        const {
+            data,
+            error
+        } =
             await supabaseClient
                 .from("products")
                 .select(
@@ -161,6 +237,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                 );
 
+
         if (error) {
 
             console.error(
@@ -168,37 +245,48 @@ document.addEventListener("DOMContentLoaded", async () => {
                 error
             );
 
+
             productsAdminList.innerHTML =
                 "<p>Não foi possível carregar os produtos.</p>";
+
 
             return;
 
         }
 
+
         if (totalProducts) {
+
             totalProducts.textContent =
                 data.length;
+
         }
 
-        if (data.length === 0) {
+
+        if (!data.length) {
 
             productsAdminList.innerHTML =
                 "<p>Nenhum produto cadastrado.</p>";
 
+
             return;
 
         }
 
+
         productsAdminList.innerHTML =
             "";
 
-        data.forEach((product) => {
 
-            createProductAdminItem(
-                product
-            );
+        data.forEach(
+            (product) => {
 
-        });
+                createProductAdminItem(
+                    product
+                );
+
+            }
+        );
 
     }
 
@@ -207,31 +295,45 @@ document.addEventListener("DOMContentLoaded", async () => {
        CRIAR ITEM DO PRODUTO
     ========================================= */
 
-    function createProductAdminItem(product) {
+    function createProductAdminItem(
+        product
+    ) {
 
         const productItem =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         productItem.className =
             "admin-product-item";
 
 
         const info =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         info.className =
             "admin-product-info";
 
 
         const name =
-            document.createElement("h4");
+            document.createElement(
+                "h4"
+            );
+
 
         name.textContent =
             product.name;
 
 
         const description =
-            document.createElement("p");
+            document.createElement(
+                "p"
+            );
+
 
         description.textContent =
             product.description ||
@@ -239,7 +341,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         const price =
-            document.createElement("strong");
+            document.createElement(
+                "strong"
+            );
+
 
         price.textContent =
             Number(
@@ -254,12 +359,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         const status =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
+
 
         status.className =
             product.active
                 ? "product-status active"
                 : "product-status inactive";
+
 
         status.textContent =
             product.active
@@ -267,10 +376,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                 : "Inativo";
 
 
-        info.appendChild(name);
-        info.appendChild(description);
-        info.appendChild(price);
-        info.appendChild(status);
+        info.appendChild(
+            name
+        );
+
+
+        info.appendChild(
+            description
+        );
+
+
+        info.appendChild(
+            price
+        );
+
+
+        info.appendChild(
+            status
+        );
 
 
         /* =========================================
@@ -278,7 +401,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         ========================================= */
 
         const actions =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         actions.className =
             "admin-product-actions";
@@ -289,13 +415,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         ========================================= */
 
         const editButton =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
+
 
         editButton.type =
             "button";
 
+
         editButton.className =
             "admin-edit-button";
+
 
         editButton.textContent =
             "Editar";
@@ -318,13 +449,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         ========================================= */
 
         const deleteButton =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
+
 
         deleteButton.type =
             "button";
 
+
         deleteButton.className =
             "admin-delete-button";
+
 
         deleteButton.textContent =
             "Excluir";
@@ -347,24 +483,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         ========================================= */
 
         const statusSwitch =
-            document.createElement("label");
+            document.createElement(
+                "label"
+            );
+
 
         statusSwitch.className =
             "product-status-switch";
 
 
         const statusInput =
-            document.createElement("input");
+            document.createElement(
+                "input"
+            );
+
 
         statusInput.type =
             "checkbox";
+
 
         statusInput.checked =
             product.active;
 
 
         const statusSlider =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
+
 
         statusSlider.className =
             "product-status-slider";
@@ -374,16 +520,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             statusInput
         );
 
+
         statusSwitch.appendChild(
             statusSlider
         );
 
 
         const statusText =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
+
 
         statusText.className =
             "product-status-text";
+
 
         statusText.textContent =
             product.active
@@ -392,7 +543,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         const statusContainer =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         statusContainer.className =
             "product-status-control";
@@ -401,6 +555,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         statusContainer.appendChild(
             statusSwitch
         );
+
 
         statusContainer.appendChild(
             statusText
@@ -425,9 +580,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             statusContainer
         );
 
+
         actions.appendChild(
             editButton
         );
+
 
         actions.appendChild(
             deleteButton
@@ -438,9 +595,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             info
         );
 
+
         productItem.appendChild(
             actions
         );
+
 
         productsAdminList.appendChild(
             productItem
@@ -453,7 +612,9 @@ document.addEventListener("DOMContentLoaded", async () => {
        EXCLUIR PRODUTO
     ========================================= */
 
-    async function deleteProduct(product) {
+    async function deleteProduct(
+        product
+    ) {
 
         const confirmed =
             window.confirm(
@@ -531,7 +692,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             await supabaseClient
                 .from("products")
                 .update({
-                    active: newStatus
+                    active:
+                        newStatus
                 })
                 .eq(
                     "id",
@@ -588,7 +750,1295 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       MODAL BASE
+       CARREGAR CATEGORIAS
+    ========================================= */
+
+    async function loadCategories() {
+
+        if (!categoriesAdminList) {
+            return;
+        }
+
+
+        categoriesAdminList.innerHTML =
+            "<p>Carregando categorias...</p>";
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .select(
+                    "id, name, slug, active"
+                )
+                .order(
+                    "id",
+                    {
+                        ascending: true
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar categorias:",
+                error
+            );
+
+
+            categoriesAdminList.innerHTML =
+                "<p>Não foi possível carregar as categorias.</p>";
+
+
+            return;
+
+        }
+
+
+        categoriesAdminList.innerHTML =
+            "";
+
+
+        if (!data.length) {
+
+            categoriesAdminList.innerHTML =
+                "<p>Nenhuma categoria cadastrada.</p>";
+
+
+            return;
+
+        }
+
+
+        data.forEach(
+            (category) => {
+
+                createCategoryAdminItem(
+                    category
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       ITEM DA CATEGORIA
+    ========================================= */
+
+    function createCategoryAdminItem(
+        category
+    ) {
+
+        const item =
+            document.createElement(
+                "div"
+            );
+
+
+        item.className =
+            "admin-category-item";
+
+
+        const info =
+            document.createElement(
+                "div"
+            );
+
+
+        info.className =
+            "admin-category-info";
+
+
+        const name =
+            document.createElement(
+                "h4"
+            );
+
+
+        name.textContent =
+            category.name;
+
+
+        const slug =
+            document.createElement(
+                "span"
+            );
+
+
+        slug.className =
+            "admin-category-slug";
+
+
+        slug.textContent =
+            category.slug;
+
+
+        info.appendChild(
+            name
+        );
+
+
+        info.appendChild(
+            slug
+        );
+
+
+        const actions =
+            document.createElement(
+                "div"
+            );
+
+
+        actions.className =
+            "admin-category-actions";
+
+
+        /* =========================================
+           STATUS
+        ========================================= */
+
+        const statusSwitch =
+            document.createElement(
+                "label"
+            );
+
+
+        statusSwitch.className =
+            "category-status-switch";
+
+
+        const statusInput =
+            document.createElement(
+                "input"
+            );
+
+
+        statusInput.type =
+            "checkbox";
+
+
+        statusInput.checked =
+            category.active;
+
+
+        const statusSlider =
+            document.createElement(
+                "span"
+            );
+
+
+        statusSlider.className =
+            "category-status-slider";
+
+
+        statusSwitch.appendChild(
+            statusInput
+        );
+
+
+        statusSwitch.appendChild(
+            statusSlider
+        );
+
+
+        const statusText =
+            document.createElement(
+                "span"
+            );
+
+
+        statusText.className =
+            "category-status-text";
+
+
+        statusText.textContent =
+            category.active
+                ? "Ativa"
+                : "Inativa";
+
+
+        const statusContainer =
+            document.createElement(
+                "div"
+            );
+
+
+        statusContainer.className =
+            "category-status-control";
+
+
+        statusContainer.appendChild(
+            statusSwitch
+        );
+
+
+        statusContainer.appendChild(
+            statusText
+        );
+
+
+        statusInput.addEventListener(
+            "change",
+            async () => {
+
+                await toggleCategoryStatus(
+                    category,
+                    statusInput,
+                    statusText
+                );
+
+            }
+        );
+
+
+        /* =========================================
+           EDITAR
+        ========================================= */
+
+        const editButton =
+            document.createElement(
+                "button"
+            );
+
+
+        editButton.type =
+            "button";
+
+
+        editButton.className =
+            "admin-edit-button";
+
+
+        editButton.textContent =
+            "Editar";
+
+
+        editButton.addEventListener(
+            "click",
+            () => {
+
+                openEditCategory(
+                    category
+                );
+
+            }
+        );
+
+
+        /* =========================================
+           EXCLUIR
+        ========================================= */
+
+        const deleteButton =
+            document.createElement(
+                "button"
+            );
+
+
+        deleteButton.type =
+            "button";
+
+
+        deleteButton.className =
+            "admin-delete-button";
+
+
+        deleteButton.textContent =
+            "Excluir";
+
+
+        deleteButton.addEventListener(
+            "click",
+            async () => {
+
+                await deleteCategory(
+                    category
+                );
+
+            }
+        );
+
+
+        actions.appendChild(
+            statusContainer
+        );
+
+
+        actions.appendChild(
+            editButton
+        );
+
+
+        actions.appendChild(
+            deleteButton
+        );
+
+
+        item.appendChild(
+            info
+        );
+
+
+        item.appendChild(
+            actions
+        );
+
+
+        categoriesAdminList.appendChild(
+            item
+        );
+
+    }
+
+
+    /* =========================================
+       ATIVAR / DESATIVAR CATEGORIA
+    ========================================= */
+
+    async function toggleCategoryStatus(
+        category,
+        checkbox,
+        statusText
+    ) {
+
+        const newStatus =
+            checkbox.checked;
+
+
+        checkbox.disabled =
+            true;
+
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .update({
+                    active:
+                        newStatus
+                })
+                .eq(
+                    "id",
+                    category.id
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao alterar status da categoria:",
+                error
+            );
+
+
+            checkbox.checked =
+                category.active;
+
+
+            statusText.textContent =
+                category.active
+                    ? "Ativa"
+                    : "Inativa";
+
+
+            alert(
+                "Não foi possível alterar o status da categoria."
+            );
+
+
+            checkbox.disabled =
+                false;
+
+
+            return;
+
+        }
+
+
+        category.active =
+            newStatus;
+
+
+        statusText.textContent =
+            newStatus
+                ? "Ativa"
+                : "Inativa";
+
+
+        checkbox.disabled =
+            false;
+
+    }
+
+
+    /* =========================================
+       CRIAR CATEGORIA
+    ========================================= */
+
+    function openNewCategory() {
+
+        const overlay =
+            createCategoryModal(
+                "Nova categoria",
+                "Cadastre uma nova categoria para o cardápio.",
+                "Cadastrar categoria"
+            );
+
+
+        const form =
+            overlay.querySelector(
+                "#categoryForm"
+            );
+
+
+        setupCategoryModalCloseEvents(
+            overlay
+        );
+
+
+        form.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                await createCategory(
+                    form
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       EDITAR CATEGORIA
+    ========================================= */
+
+    function openEditCategory(
+        category
+    ) {
+
+        const overlay =
+            createCategoryModal(
+                "Editar categoria",
+                "Altere as informações da categoria.",
+                "Salvar alterações"
+            );
+
+
+        const form =
+            overlay.querySelector(
+                "#categoryForm"
+            );
+
+
+        form.querySelector(
+            "#categoryName"
+        ).value =
+            category.name;
+
+
+        form.querySelector(
+            "#categorySlug"
+        ).value =
+            category.slug;
+
+
+        form.querySelector(
+            "#categoryActive"
+        ).checked =
+            category.active;
+
+
+        setupCategoryModalCloseEvents(
+            overlay
+        );
+
+
+        form.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                await updateCategory(
+                    category,
+                    form
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       MODAL DE CATEGORIA
+    ========================================= */
+
+    function createCategoryModal(
+        title,
+        subtitle,
+        buttonText
+    ) {
+
+        closeProductModal();
+
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.className =
+            "category-modal-overlay";
+
+
+        overlay.innerHTML = `
+
+            <div class="category-modal">
+
+                <div class="category-modal-header">
+
+                    <div>
+
+                        <h2>
+                            ${title}
+                        </h2>
+
+                        <p>
+                            ${subtitle}
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="category-modal-close"
+                        aria-label="Fechar"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <form
+                    id="categoryForm"
+                    class="category-form"
+                >
+
+                    <div class="product-form-group">
+
+                        <label
+                            for="categoryName"
+                        >
+                            Nome
+                        </label>
+
+
+                        <input
+                            type="text"
+                            id="categoryName"
+                            placeholder="Ex.: Combos"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="product-form-group">
+
+                        <label
+                            for="categorySlug"
+                        >
+                            Slug
+                        </label>
+
+
+                        <input
+                            type="text"
+                            id="categorySlug"
+                            placeholder="Ex.: combos"
+                            required
+                        >
+
+
+                        <small>
+                            Usado internamente para identificar a categoria.
+                        </small>
+
+                    </div>
+
+
+                    <div class="product-form-status">
+
+                        <label>
+
+                            <input
+                                type="checkbox"
+                                id="categoryActive"
+                                checked
+                            >
+
+                            Categoria ativa
+
+                        </label>
+
+                    </div>
+
+
+                    <div class="product-form-actions">
+
+                        <button
+                            type="button"
+                            class="product-cancel-button"
+                        >
+                            Cancelar
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            class="product-save-button"
+                        >
+                            ${buttonText}
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            overlay
+        );
+
+
+        const nameInput =
+            overlay.querySelector(
+                "#categoryName"
+            );
+
+
+        const slugInput =
+            overlay.querySelector(
+                "#categorySlug"
+            );
+
+
+        nameInput.addEventListener(
+            "input",
+            () => {
+
+                if (
+                    !slugInput.dataset.edited
+                ) {
+
+                    slugInput.value =
+                        sanitizeFileName(
+                            nameInput.value
+                        );
+
+                }
+
+            }
+        );
+
+
+        slugInput.addEventListener(
+            "input",
+            () => {
+
+                slugInput.dataset.edited =
+                    "true";
+
+            }
+        );
+
+
+        return overlay;
+
+    }
+
+
+    /* =========================================
+       FECHAR MODAL CATEGORIA
+    ========================================= */
+
+    function setupCategoryModalCloseEvents(
+        overlay
+    ) {
+
+        const closeButton =
+            overlay.querySelector(
+                ".category-modal-close"
+            );
+
+
+        const cancelButton =
+            overlay.querySelector(
+                ".product-cancel-button"
+            );
+
+
+        closeButton.addEventListener(
+            "click",
+            () => {
+
+                overlay.remove();
+
+            }
+        );
+
+
+        cancelButton.addEventListener(
+            "click",
+            () => {
+
+                overlay.remove();
+
+            }
+        );
+
+
+        overlay.addEventListener(
+            "click",
+            (event) => {
+
+                if (
+                    event.target ===
+                    overlay
+                ) {
+
+                    overlay.remove();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       INSERIR CATEGORIA
+    ========================================= */
+
+    async function createCategory(
+        form
+    ) {
+
+        const name =
+            form.querySelector(
+                "#categoryName"
+            )
+                .value
+                .trim();
+
+
+        const slug =
+            form.querySelector(
+                "#categorySlug"
+            )
+                .value
+                .trim();
+
+
+        const active =
+            form.querySelector(
+                "#categoryActive"
+            ).checked;
+
+
+        if (
+            !name ||
+            !slug
+        ) {
+
+            alert(
+                "Preencha nome e slug."
+            );
+
+
+            return;
+
+        }
+
+
+        const saveButton =
+            form.querySelector(
+                ".product-save-button"
+            );
+
+
+        saveButton.disabled =
+            true;
+
+
+        saveButton.textContent =
+            "Cadastrando...";
+
+
+        try {
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .from("categories")
+                    .insert({
+
+                        name:
+                            name,
+
+                        slug:
+                            slug,
+
+                        active:
+                            active
+
+                    });
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            document
+                .querySelector(
+                    ".category-modal-overlay"
+                )
+                ?.remove();
+
+
+            await loadCategories();
+
+
+            alert(
+                "Categoria cadastrada com sucesso."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao cadastrar categoria:",
+                error
+            );
+
+
+            if (
+                error.code ===
+                "23505"
+            ) {
+
+                alert(
+                    "Já existe uma categoria com esse slug."
+                );
+
+            } else {
+
+                alert(
+                    "Não foi possível cadastrar a categoria."
+                );
+
+            }
+
+
+            saveButton.disabled =
+                false;
+
+
+            saveButton.textContent =
+                "Cadastrar categoria";
+
+        }
+
+    }
+
+
+    /* =========================================
+       ATUALIZAR CATEGORIA
+    ========================================= */
+
+    async function updateCategory(
+        category,
+        form
+    ) {
+
+        const name =
+            form.querySelector(
+                "#categoryName"
+            )
+                .value
+                .trim();
+
+
+        const slug =
+            form.querySelector(
+                "#categorySlug"
+            )
+                .value
+                .trim();
+
+
+        const active =
+            form.querySelector(
+                "#categoryActive"
+            ).checked;
+
+
+        if (
+            !name ||
+            !slug
+        ) {
+
+            alert(
+                "Preencha nome e slug."
+            );
+
+
+            return;
+
+        }
+
+
+        const saveButton =
+            form.querySelector(
+                ".product-save-button"
+            );
+
+
+        saveButton.disabled =
+            true;
+
+
+        saveButton.textContent =
+            "Salvando...";
+
+
+        try {
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .from("categories")
+                    .update({
+
+                        name:
+                            name,
+
+                        slug:
+                            slug,
+
+                        active:
+                            active
+
+                    })
+                    .eq(
+                        "id",
+                        category.id
+                    );
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            document
+                .querySelector(
+                    ".category-modal-overlay"
+                )
+                ?.remove();
+
+
+            await loadCategories();
+
+
+            alert(
+                "Categoria atualizada com sucesso."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao atualizar categoria:",
+                error
+            );
+
+
+            if (
+                error.code ===
+                "23505"
+            ) {
+
+                alert(
+                    "Já existe uma categoria com esse slug."
+                );
+
+            } else {
+
+                alert(
+                    "Não foi possível atualizar a categoria."
+                );
+
+            }
+
+
+            saveButton.disabled =
+                false;
+
+
+            saveButton.textContent =
+                "Salvar alterações";
+
+        }
+
+    }
+
+
+    /* =========================================
+       EXCLUIR CATEGORIA
+    ========================================= */
+
+    async function deleteCategory(
+        category
+    ) {
+
+        const {
+            data: products,
+            error: productsError
+        } =
+            await supabaseClient
+                .from("products")
+                .select(
+                    "id"
+                )
+                .eq(
+                    "category",
+                    category.slug
+                );
+
+
+        if (productsError) {
+
+            console.error(
+                "Erro ao verificar produtos da categoria:",
+                productsError
+            );
+
+
+            alert(
+                "Não foi possível verificar se a categoria está em uso."
+            );
+
+
+            return;
+
+        }
+
+
+        if (
+            products &&
+            products.length > 0
+        ) {
+
+            alert(
+                `Não é possível excluir "${category.name}" porque existem ${products.length} produto(s) usando essa categoria.\n\n` +
+                `Altere os produtos para outra categoria antes de excluir.`
+            );
+
+
+            return;
+
+        }
+
+
+        const confirmed =
+            window.confirm(
+                `Tem certeza que deseja excluir a categoria "${category.name}"?`
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .delete()
+                .eq(
+                    "id",
+                    category.id
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao excluir categoria:",
+                error
+            );
+
+
+            alert(
+                "Não foi possível excluir a categoria."
+            );
+
+
+            return;
+
+        }
+
+
+        alert(
+            "Categoria excluída com sucesso."
+        );
+
+
+        await loadCategories();
+
+    }
+
+
+    /* =========================================
+       CARREGAR CATEGORIAS NO SELECT
+    ========================================= */
+
+    async function loadCategoriesIntoSelect(
+        selectElement,
+        includeInactive = false
+    ) {
+
+        if (!selectElement) {
+            return;
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .select(
+                    "id, name, slug, active"
+                )
+                .order(
+                    "id",
+                    {
+                        ascending: true
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar categorias no formulário:",
+                error
+            );
+
+
+            return;
+
+        }
+
+
+        selectElement.innerHTML =
+            "";
+
+
+        const availableCategories =
+            includeInactive
+                ? data
+                : data.filter(
+                    (category) =>
+                        category.active
+                );
+
+
+        if (
+            availableCategories.length ===
+            0
+        ) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                "";
+
+
+            option.textContent =
+                "Nenhuma categoria disponível";
+
+
+            selectElement.appendChild(
+                option
+            );
+
+
+            return;
+
+        }
+
+
+        availableCategories.forEach(
+            (category) => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    category.slug;
+
+
+                option.textContent =
+                    category.name;
+
+
+                selectElement.appendChild(
+                    option
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       MODAL BASE DO PRODUTO
     ========================================= */
 
     function createProductModal(
@@ -601,7 +2051,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         const overlay =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         overlay.className =
             "product-modal-overlay";
@@ -699,23 +2152,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                             id="productCategory"
                             required
                         >
-
-                            <option value="pizzas">
-                                Pizzas
+                            <option value="">
+                                Carregando categorias...
                             </option>
-
-                            <option value="pizzas-doces">
-                                Pizzas Doces
-                            </option>
-
-                            <option value="bebidas-2l">
-                                Bebidas 2 litros
-                            </option>
-
-                            <option value="bebidas-lata">
-                                Bebidas Lata
-                            </option>
-
                         </select>
 
                     </div>
@@ -754,7 +2193,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>
 
 
-                    <!-- ADICIONAIS -->
+                    <!-- =====================================
+                         ADICIONAIS
+                    ====================================== -->
 
                     <div class="product-options-section">
 
@@ -798,7 +2239,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>
 
 
-                    <!-- INGREDIENTES -->
+                    <!-- =====================================
+                         INGREDIENTES
+                    ====================================== -->
 
                     <div class="product-options-section">
 
@@ -899,7 +2342,7 @@ document.addEventListener("DOMContentLoaded", async () => {
        NOVO PRODUTO
     ========================================= */
 
-    function openNewProduct() {
+    async function openNewProduct() {
 
         const overlay =
             createProductModal(
@@ -914,30 +2357,42 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "#productForm"
             );
 
+
         const imageInput =
             overlay.querySelector(
                 "#productImage"
             );
+
 
         const imagePreview =
             overlay.querySelector(
                 "#productImagePreview"
             );
 
+
+        const categorySelect =
+            overlay.querySelector(
+                "#productCategory"
+            );
+
+
         const addonsList =
             overlay.querySelector(
                 "#addonsList"
             );
+
 
         const ingredientsList =
             overlay.querySelector(
                 "#ingredientsList"
             );
 
+
         const addAddonButton =
             overlay.querySelector(
                 "#addAddonButton"
             );
+
 
         const addIngredientButton =
             overlay.querySelector(
@@ -953,6 +2408,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupImagePreview(
             imageInput,
             imagePreview
+        );
+
+
+        await loadCategoriesIntoSelect(
+            categorySelect,
+            false
         );
 
 
@@ -986,6 +2447,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 event.preventDefault();
 
+
                 await createNewProduct(
                     form
                 );
@@ -997,7 +2459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       CRIAR NOVO PRODUTO
+       CRIAR PRODUTO
     ========================================= */
 
     async function createNewProduct(
@@ -1062,6 +2524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "Preencha os campos obrigatórios corretamente."
             );
 
+
             return;
 
         }
@@ -1069,7 +2532,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (
             file &&
-            !isValidImage(file)
+            !isValidImage(
+                file
+            )
         ) {
 
             return;
@@ -1248,7 +2713,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             closeProductModal();
 
+
             await loadProducts();
+
 
             alert(
                 "Produto cadastrado com sucesso."
@@ -1288,7 +2755,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     ) {
 
         const baseSlug =
-            sanitizeFileName(name) ||
+            sanitizeFileName(
+                name
+            ) ||
             `produto-${Date.now()}`;
 
 
@@ -1329,7 +2798,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             slug =
                 `${baseSlug}-${counter}`;
 
-            counter += 1;
+
+            counter +=
+                1;
 
         }
 
@@ -1353,6 +2824,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         row.className =
             "product-option-row new-option";
 
+
         row.dataset.newAddon =
             "true";
 
@@ -1362,11 +2834,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         nameInput.type =
             "text";
 
+
         nameInput.className =
             "product-option-name";
+
 
         nameInput.placeholder =
             "Nome do adicional";
@@ -1377,17 +2852,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         priceInput.type =
             "number";
+
 
         priceInput.className =
             "product-option-price";
 
+
         priceInput.min =
             "0";
 
+
         priceInput.step =
             "0.01";
+
 
         priceInput.placeholder =
             "Preço";
@@ -1398,11 +2878,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         removeButton.type =
             "button";
 
+
         removeButton.className =
             "product-option-delete-button";
+
 
         removeButton.textContent =
             "Remover";
@@ -1422,9 +2905,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             nameInput
         );
 
+
         row.appendChild(
             priceInput
         );
+
 
         row.appendChild(
             removeButton
@@ -1458,6 +2943,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         row.className =
             "product-option-row new-option";
 
+
         row.dataset.newIngredient =
             "true";
 
@@ -1467,11 +2953,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         nameInput.type =
             "text";
 
+
         nameInput.className =
             "product-option-name";
+
 
         nameInput.placeholder =
             "Nome do ingrediente";
@@ -1482,11 +2971,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         removeButton.type =
             "button";
 
+
         removeButton.className =
             "product-option-delete-button";
+
 
         removeButton.textContent =
             "Remover";
@@ -1505,6 +2997,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         row.appendChild(
             nameInput
         );
+
 
         row.appendChild(
             removeButton
@@ -1538,43 +3031,47 @@ document.addEventListener("DOMContentLoaded", async () => {
         const addons = [];
 
 
-        rows.forEach((row) => {
+        rows.forEach(
+            (row) => {
 
-            const name =
-                row.querySelector(
-                    ".product-option-name"
-                )
-                    .value
-                    .trim();
-
-
-            const price =
-                Number(
+                const name =
                     row.querySelector(
-                        ".product-option-price"
-                    ).value
-                );
+                        ".product-option-name"
+                    )
+                        .value
+                        .trim();
 
 
-            if (
-                name &&
-                Number.isFinite(price) &&
-                price >= 0
-            ) {
+                const price =
+                    Number(
+                        row.querySelector(
+                            ".product-option-price"
+                        ).value
+                    );
 
-                addons.push({
 
-                    name:
-                        name,
-
-                    price:
+                if (
+                    name &&
+                    Number.isFinite(
                         price
+                    ) &&
+                    price >= 0
+                ) {
 
-                });
+                    addons.push({
+
+                        name:
+                            name,
+
+                        price:
+                            price
+
+                    });
+
+                }
 
             }
-
-        });
+        );
 
 
         return addons;
@@ -1599,28 +3096,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         const ingredients = [];
 
 
-        rows.forEach((row) => {
+        rows.forEach(
+            (row) => {
 
-            const name =
-                row.querySelector(
-                    ".product-option-name"
-                )
-                    .value
-                    .trim();
+                const name =
+                    row.querySelector(
+                        ".product-option-name"
+                    )
+                        .value
+                        .trim();
 
 
-            if (name) {
+                if (name) {
 
-                ingredients.push({
+                    ingredients.push({
 
-                    name:
-                        name
+                        name:
+                            name
 
-                });
+                    });
+
+                }
 
             }
-
-        });
+        );
 
 
         return ingredients;
@@ -1632,7 +3131,9 @@ document.addEventListener("DOMContentLoaded", async () => {
        ABRIR EDIÇÃO
     ========================================= */
 
-    async function openEditProduct(product) {
+    async function openEditProduct(
+        product
+    ) {
 
         const overlay =
             createProductModal(
@@ -1647,36 +3148,52 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "#productForm"
             );
 
+
         const imageInput =
             overlay.querySelector(
                 "#productImage"
             );
+
 
         const imagePreview =
             overlay.querySelector(
                 "#productImagePreview"
             );
 
+
+        const categorySelect =
+            overlay.querySelector(
+                "#productCategory"
+            );
+
+
         const addonsList =
             overlay.querySelector(
                 "#addonsList"
             );
+
 
         const ingredientsList =
             overlay.querySelector(
                 "#ingredientsList"
             );
 
+
         const addAddonButton =
             overlay.querySelector(
                 "#addAddonButton"
             );
+
 
         const addIngredientButton =
             overlay.querySelector(
                 "#addIngredientButton"
             );
 
+
+        /* =========================================
+           PREENCHER
+        ========================================= */
 
         form.querySelector(
             "#productName"
@@ -1700,16 +3217,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         form.querySelector(
-            "#productCategory"
-        ).value =
-            product.category;
-
-
-        form.querySelector(
             "#productActive"
         ).checked =
             product.active;
 
+
+        /* =========================================
+           CATEGORIAS
+        ========================================= */
+
+        await loadCategoriesIntoSelect(
+            categorySelect,
+            true
+        );
+
+
+        categorySelect.value =
+            product.category;
+
+
+        /* =========================================
+           IMAGEM
+        ========================================= */
 
         if (product.image_url) {
 
@@ -1746,6 +3275,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
+        /* =========================================
+           CARREGAR OPÇÕES
+        ========================================= */
+
         await loadProductAddons(
             product.id,
             addonsList
@@ -1757,6 +3290,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             ingredientsList
         );
 
+
+        /* =========================================
+           NOVO ADICIONAL
+        ========================================= */
 
         addAddonButton.addEventListener(
             "click",
@@ -1771,6 +3308,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
+        /* =========================================
+           NOVO INGREDIENTE
+        ========================================= */
+
         addIngredientButton.addEventListener(
             "click",
             () => {
@@ -1783,6 +3324,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         );
 
+
+        /* =========================================
+           SALVAR
+        ========================================= */
 
         form.addEventListener(
             "submit",
@@ -1816,7 +3361,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             error
         } =
             await supabaseClient
-                .from("product_addons")
+                .from(
+                    "product_addons"
+                )
                 .select(
                     "id, name, price, active"
                 )
@@ -1866,19 +3413,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </p>
                 `;
 
+
             return;
 
         }
 
 
-        data.forEach((addon) => {
+        data.forEach(
+            (addon) => {
 
-            createAddonRow(
-                addon,
-                container
-            );
+                createAddonRow(
+                    addon,
+                    container
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -1907,11 +3457,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         nameInput.type =
             "text";
 
+
         nameInput.className =
             "product-option-name";
+
 
         nameInput.value =
             addon.name;
@@ -1922,17 +3475,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         priceInput.type =
             "number";
+
 
         priceInput.className =
             "product-option-price";
 
+
         priceInput.min =
             "0";
 
+
         priceInput.step =
             "0.01";
+
 
         priceInput.value =
             Number(
@@ -1945,6 +3503,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "label"
             );
 
+
         activeLabel.className =
             "product-option-active";
 
@@ -1954,8 +3513,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         activeCheckbox.type =
             "checkbox";
+
 
         activeCheckbox.checked =
             addon.active;
@@ -1964,6 +3525,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         activeLabel.appendChild(
             activeCheckbox
         );
+
 
         activeLabel.appendChild(
             document.createTextNode(
@@ -1977,11 +3539,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         saveButton.type =
             "button";
 
+
         saveButton.className =
             "product-option-save-button";
+
 
         saveButton.textContent =
             "Salvar";
@@ -2007,11 +3572,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         deleteButton.type =
             "button";
 
+
         deleteButton.className =
             "product-option-delete-button";
+
 
         deleteButton.textContent =
             "Excluir";
@@ -2030,11 +3598,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
-        row.appendChild(nameInput);
-        row.appendChild(priceInput);
-        row.appendChild(activeLabel);
-        row.appendChild(saveButton);
-        row.appendChild(deleteButton);
+        row.appendChild(
+            nameInput
+        );
+
+
+        row.appendChild(
+            priceInput
+        );
+
+
+        row.appendChild(
+            activeLabel
+        );
+
+
+        row.appendChild(
+            saveButton
+        );
+
+
+        row.appendChild(
+            deleteButton
+        );
 
 
         container.appendChild(
@@ -2068,11 +3654,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         nameInput.type =
             "text";
 
+
         nameInput.className =
             "product-option-name";
+
 
         nameInput.placeholder =
             "Nome do adicional";
@@ -2083,17 +3672,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         priceInput.type =
             "number";
+
 
         priceInput.className =
             "product-option-price";
 
+
         priceInput.min =
             "0";
 
+
         priceInput.step =
             "0.01";
+
 
         priceInput.placeholder =
             "Preço";
@@ -2104,11 +3698,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         saveButton.type =
             "button";
 
+
         saveButton.className =
             "product-option-save-button";
+
 
         saveButton.textContent =
             "Adicionar";
@@ -2134,11 +3731,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         cancelButton.type =
             "button";
 
+
         cancelButton.className =
             "product-option-delete-button";
+
 
         cancelButton.textContent =
             "Cancelar";
@@ -2154,10 +3754,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
-        row.appendChild(nameInput);
-        row.appendChild(priceInput);
-        row.appendChild(saveButton);
-        row.appendChild(cancelButton);
+        row.appendChild(
+            nameInput
+        );
+
+
+        row.appendChild(
+            priceInput
+        );
+
+
+        row.appendChild(
+            saveButton
+        );
+
+
+        row.appendChild(
+            cancelButton
+        );
 
 
         container.appendChild(
@@ -2192,13 +3806,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (
             !cleanName ||
-            !Number.isFinite(numericPrice) ||
+            !Number.isFinite(
+                numericPrice
+            ) ||
             numericPrice < 0
         ) {
 
             alert(
                 "Informe o nome e um preço válido."
             );
+
 
             return;
 
@@ -2281,13 +3898,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (
             !cleanName ||
-            !Number.isFinite(numericPrice) ||
+            !Number.isFinite(
+                numericPrice
+            ) ||
             numericPrice < 0
         ) {
 
             alert(
                 "Informe o nome e um preço válido."
             );
+
 
             return;
 
@@ -2448,6 +4068,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </p>
                 `;
 
+
             return;
 
         }
@@ -2466,19 +4087,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </p>
                 `;
 
+
             return;
 
         }
 
 
-        data.forEach((ingredient) => {
+        data.forEach(
+            (ingredient) => {
 
-            createIngredientRow(
-                ingredient,
-                container
-            );
+                createIngredientRow(
+                    ingredient,
+                    container
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -2507,11 +4131,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         nameInput.type =
             "text";
 
+
         nameInput.className =
             "product-option-name";
+
 
         nameInput.value =
             ingredient.name;
@@ -2522,6 +4149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "label"
             );
 
+
         activeLabel.className =
             "product-option-active";
 
@@ -2531,8 +4159,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         activeCheckbox.type =
             "checkbox";
+
 
         activeCheckbox.checked =
             ingredient.active;
@@ -2541,6 +4171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         activeLabel.appendChild(
             activeCheckbox
         );
+
 
         activeLabel.appendChild(
             document.createTextNode(
@@ -2554,11 +4185,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         saveButton.type =
             "button";
 
+
         saveButton.className =
             "product-option-save-button";
+
 
         saveButton.textContent =
             "Salvar";
@@ -2583,11 +4217,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         deleteButton.type =
             "button";
 
+
         deleteButton.className =
             "product-option-delete-button";
+
 
         deleteButton.textContent =
             "Excluir";
@@ -2606,10 +4243,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
-        row.appendChild(nameInput);
-        row.appendChild(activeLabel);
-        row.appendChild(saveButton);
-        row.appendChild(deleteButton);
+        row.appendChild(
+            nameInput
+        );
+
+
+        row.appendChild(
+            activeLabel
+        );
+
+
+        row.appendChild(
+            saveButton
+        );
+
+
+        row.appendChild(
+            deleteButton
+        );
 
 
         container.appendChild(
@@ -2643,11 +4294,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "input"
             );
 
+
         nameInput.type =
             "text";
 
+
         nameInput.className =
             "product-option-name";
+
 
         nameInput.placeholder =
             "Nome do ingrediente";
@@ -2658,11 +4312,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         saveButton.type =
             "button";
 
+
         saveButton.className =
             "product-option-save-button";
+
 
         saveButton.textContent =
             "Adicionar";
@@ -2687,11 +4344,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "button"
             );
 
+
         cancelButton.type =
             "button";
 
+
         cancelButton.className =
             "product-option-delete-button";
+
 
         cancelButton.textContent =
             "Cancelar";
@@ -2711,9 +4371,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             nameInput
         );
 
+
         row.appendChild(
             saveButton
         );
+
 
         row.appendChild(
             cancelButton
@@ -2750,6 +4412,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert(
                 "Informe o nome do ingrediente."
             );
+
 
             return;
 
@@ -2827,6 +4490,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert(
                 "Informe o nome do ingrediente."
             );
+
 
             return;
 
@@ -3004,6 +4668,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "Preencha os campos obrigatórios corretamente."
             );
 
+
             return;
 
         }
@@ -3011,7 +4676,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (
             file &&
-            !isValidImage(file)
+            !isValidImage(
+                file
+            )
         ) {
 
             return;
@@ -3099,7 +4766,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             closeProductModal();
 
+
             await loadProducts();
+
 
             alert(
                 "Produto atualizado com sucesso."
@@ -3131,7 +4800,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       FECHAR MODAL
+       EVENTOS DO MODAL
     ========================================= */
 
     function setupModalCloseEvents(
@@ -3190,7 +4859,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       PREVIEW DE IMAGEM
+       PREVIEW DA IMAGEM
     ========================================= */
 
     function setupImagePreview(
@@ -3212,7 +4881,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
                 if (
-                    !isValidImage(file)
+                    !isValidImage(
+                        file
+                    )
                 ) {
 
                     imageInput.value =
@@ -3260,15 +4931,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "A imagem deve ter no máximo 5 MB."
             );
 
+
             return false;
 
         }
 
 
         const allowedTypes = [
+
             "image/jpeg",
+
             "image/png",
+
             "image/webp"
+
         ];
 
 
@@ -3281,6 +4957,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert(
                 "Escolha uma imagem JPG, PNG ou WebP."
             );
+
 
             return false;
 
@@ -3379,7 +5056,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       FECHAR MODAL
+       FECHAR MODAL DE PRODUTO
     ========================================= */
 
     function closeProductModal() {
@@ -3391,14 +5068,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         if (modal) {
+
             modal.remove();
+
         }
 
     }
 
 
     /* =========================================
-       EXTENSÃO
+       EXTENSÃO DO ARQUIVO
     ========================================= */
 
     function getFileExtension(
@@ -3419,7 +5098,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       LIMPAR NOME
+       LIMPAR NOME / GERAR SLUG
     ========================================= */
 
     function sanitizeFileName(
@@ -3450,7 +5129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       ESC
+       ESC PARA FECHAR MODAL
     ========================================= */
 
     document.addEventListener(
@@ -3489,9 +5168,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       INICIALIZAÇÃO
+       NOVA CATEGORIA
+    ========================================= */
+
+    if (newCategoryButton) {
+
+        newCategoryButton.addEventListener(
+            "click",
+            () => {
+
+                openNewCategory();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       CARGA INICIAL
     ========================================= */
 
     await loadProducts();
+
+
+    await loadCategories();
 
 });

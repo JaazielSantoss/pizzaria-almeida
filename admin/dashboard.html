@@ -5,11 +5,17 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Painel | Pizzaria Almeida</title>
 
-    <link rel="stylesheet" href="css/admin.css">
+    <link
+        rel="stylesheet"
+        href="css/admin.css"
+    >
 
 </head>
 
@@ -17,7 +23,9 @@
 
     <div class="admin-layout">
 
-        <!-- SIDEBAR -->
+        <!-- =========================================
+             SIDEBAR
+        ========================================== -->
 
         <aside class="admin-sidebar">
 
@@ -36,36 +44,67 @@
 
             <nav class="admin-nav">
 
-                <button class="admin-nav-item active" data-section="dashboard">
+                <button
+                    type="button"
+                    class="admin-nav-item active"
+                    data-section="dashboard"
+                >
                     Dashboard
                 </button>
 
 
-                <button class="admin-nav-item" data-section="products">
+                <button
+                    type="button"
+                    class="admin-nav-item"
+                    data-section="products"
+                >
                     Produtos
                 </button>
 
 
-                <button class="admin-nav-item" data-section="orders">
+                <button
+                    type="button"
+                    class="admin-nav-item"
+                    data-section="categories"
+                >
+                    Categorias
+                </button>
+
+
+                <button
+                    type="button"
+                    class="admin-nav-item"
+                    data-section="orders"
+                >
                     Pedidos
                 </button>
 
 
-                <button class="admin-nav-item" data-section="customers">
+                <button
+                    type="button"
+                    class="admin-nav-item"
+                    data-section="customers"
+                >
                     Clientes
                 </button>
 
             </nav>
 
 
-            <button class="admin-logout" id="adminLogout">
+            <button
+                type="button"
+                class="admin-logout"
+                id="adminLogout"
+            >
                 Sair
             </button>
 
         </aside>
 
 
-        <!-- CONTEÚDO -->
+        <!-- =========================================
+             CONTEÚDO
+        ========================================== -->
 
         <main class="admin-main">
 
@@ -86,13 +125,22 @@
             </header>
 
 
-            <!-- DASHBOARD -->
+            <!-- =========================================
+                 DASHBOARD
+            ========================================== -->
 
-            <section class="admin-section active" id="section-dashboard">
+            <section
+                class="admin-section active"
+                id="section-dashboard"
+            >
 
                 <div class="admin-cards">
 
-                    <button type="button" class="admin-card admin-card-button" data-section="products">
+                    <button
+                        type="button"
+                        class="admin-card admin-card-button"
+                        data-section="products"
+                    >
 
                         <span>
                             Produtos
@@ -109,7 +157,11 @@
                     </button>
 
 
-                    <button type="button" class="admin-card admin-card-button" data-section="orders">
+                    <button
+                        type="button"
+                        class="admin-card admin-card-button"
+                        data-section="orders"
+                    >
 
                         <span>
                             Pedidos
@@ -126,7 +178,11 @@
                     </button>
 
 
-                    <button type="button" class="admin-card admin-card-button" data-section="customers">
+                    <button
+                        type="button"
+                        class="admin-card admin-card-button"
+                        data-section="customers"
+                    >
 
                         <span>
                             Clientes
@@ -147,9 +203,14 @@
             </section>
 
 
-            <!-- PRODUTOS -->
+            <!-- =========================================
+                 PRODUTOS
+            ========================================== -->
 
-            <section class="admin-section" id="section-products">
+            <section
+                class="admin-section"
+                id="section-products"
+            >
 
                 <div class="section-header">
 
@@ -166,14 +227,21 @@
                     </div>
 
 
-                    <button class="admin-primary-button" id="newProductButton">
+                    <button
+                        type="button"
+                        class="admin-primary-button"
+                        id="newProductButton"
+                    >
                         + Novo produto
                     </button>
 
                 </div>
 
 
-                <div class="products-admin-list" id="productsAdminList">
+                <div
+                    class="products-admin-list"
+                    id="productsAdminList"
+                >
 
                     <p>
                         Carregando produtos...
@@ -184,9 +252,63 @@
             </section>
 
 
-            <!-- PEDIDOS -->
+            <!-- =========================================
+                 CATEGORIAS
+            ========================================== -->
 
-            <section class="admin-section" id="section-orders">
+            <section
+                class="admin-section"
+                id="section-categories"
+            >
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h3>
+                            Categorias
+                        </h3>
+
+                        <p>
+                            Gerencie as categorias do cardápio
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-primary-button"
+                        id="newCategoryButton"
+                    >
+                        + Nova categoria
+                    </button>
+
+                </div>
+
+
+                <div
+                    class="categories-admin-list"
+                    id="categoriesAdminList"
+                >
+
+                    <p>
+                        Carregando categorias...
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 PEDIDOS
+            ========================================== -->
+
+            <section
+                class="admin-section"
+                id="section-orders"
+            >
 
                 <div class="section-header">
 
@@ -216,9 +338,14 @@
             </section>
 
 
-            <!-- CLIENTES -->
+            <!-- =========================================
+                 CLIENTES
+            ========================================== -->
 
-            <section class="admin-section" id="section-customers">
+            <section
+                class="admin-section"
+                id="section-customers"
+            >
 
                 <div class="section-header">
 
@@ -252,10 +379,16 @@
     </div>
 
 
-    <!-- SUPABASE -->
+    <!-- =========================================
+         SUPABASE
+    ========================================== -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script src="/js/supabase.js"></script>
+
     <script src="js/guard.js"></script>
+
     <script src="js/admin.js"></script>
 
 </body>
