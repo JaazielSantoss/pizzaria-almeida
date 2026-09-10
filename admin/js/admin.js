@@ -1,5 +1,71 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+
+
+    /* =========================================
+   PERFIL DO USUÁRIO
+========================================= */
+
+    let currentUserRole = null;
+
+    async function loadCurrentUserRole() {
+
+        console.log("INICIANDO LEITURA DO PERFIL");
+
+        const {
+            data: {
+                user
+            },
+            error: userError
+        } = await supabaseClient.auth.getUser();
+
+
+        if (userError || !user) {
+
+            console.error(
+                "Erro ao obter usuário:",
+                userError
+            );
+
+            return;
+
+        }
+
+
+        const {
+            data: profile,
+            error
+        } =
+            await supabaseClient
+                .from("user_profiles")
+                .select("role")
+                .eq("id", user.id)
+                .single();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar perfil:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        currentUserRole =
+            profile.role;
+
+
+        console.log(
+            "Função do usuário:",
+            currentUserRole
+        );
+
+    }
+
     /* =========================================
        ELEMENTOS
     ========================================= */
@@ -5189,8 +5255,9 @@ document.addEventListener("DOMContentLoaded", async () => {
        CARGA INICIAL
     ========================================= */
 
-    await loadProducts();
+    await loadCurrentUserRole();
 
+    await loadProducts();
 
     await loadCategories();
 
