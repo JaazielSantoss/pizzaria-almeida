@@ -354,6 +354,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+    /* =========================================
+   SUPABASE REALTIME
+   ATUALIZAÇÃO AUTOMÁTICA DOS PRODUTOS
+========================================= */
+
+    function subscribeToProductsChanges() {
+
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            console.error(
+                "supabaseClient não foi encontrado para o Realtime."
+            );
+
+            return;
+
+        }
+
+
+        const channel =
+            supabaseClient
+                .channel(
+                    "products-realtime"
+                )
+                .on(
+                    "postgres_changes",
+                    {
+                        event: "*",
+                        schema: "public",
+                        table: "products"
+                    },
+                    async (payload) => {
+
+                        console.log(
+                            "Alteração recebida nos produtos:",
+                            payload
+                        );
+
+
+                        await loadProductsFromSupabase();
+
+                    }
+                )
+                .subscribe(
+                    (status) => {
+
+                        console.log(
+                            "Realtime products:",
+                            status
+                        );
+
+                    }
+                );
+
+
+        return channel;
+
+    }
+
 
     /* =========================================
        RENDERIZAR PRODUTOS
@@ -1783,7 +1844,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     step.classList.toggle(
                         "active",
                         currentStep ===
-                            stepNumber
+                        stepNumber
                     );
 
                 }
@@ -2262,39 +2323,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <p>
                 ${escapeHtml(
-                    customerData.street
-                )},
+            customerData.street
+        )},
                 ${escapeHtml(
-                    customerData.number
-                )}
-                ${
+            customerData.number
+        )}
+                ${customerData.complement
+                ? ` - ${escapeHtml(
                     customerData.complement
-                        ? ` - ${escapeHtml(
-                            customerData.complement
-                        )}`
-                        : ""
-                }
+                )}`
+                : ""
+            }
             </p>
 
             <p>
                 ${escapeHtml(
-                    customerData.neighborhood
-                )}
+                customerData.neighborhood
+            )}
                 -
                 ${escapeHtml(
-                    customerData.city
-                )}
+                customerData.city
+            )}
                 /
                 ${escapeHtml(
-                    customerData.state
-                )}
+                customerData.state
+            )}
             </p>
 
             <p>
                 CEP:
                 ${escapeHtml(
-                    customerData.cep
-                )}
+                customerData.cep
+            )}
             </p>
 
         `;
@@ -2308,24 +2368,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <p>
                 ${escapeHtml(
-                    customerData.payment ||
-                    "Pix"
-                )}
+            customerData.payment ||
+            "Pix"
+        )}
             </p>
 
-            ${
-                customerData.payment ===
-                    "Dinheiro" &&
+            ${customerData.payment ===
+                "Dinheiro" &&
                 customerData.changeFor
-                    ? `
+                ? `
                         <p>
                             Troco para:
                             ${escapeHtml(
-                                customerData.changeFor
-                            )}
+                    customerData.changeFor
+                )}
                         </p>
                     `
-                    : ""
+                : ""
             }
 
         `;
@@ -2439,7 +2498,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (
             customerData.payment ===
-                "Dinheiro" &&
+            "Dinheiro" &&
             customerData.changeFor
         ) {
 
@@ -2527,7 +2586,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-
     /* =========================================
        INICIALIZAÇÃO
     ========================================= */
@@ -2535,5 +2593,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCart();
 
     loadProductsFromSupabase();
+
+    subscribeToProductsChanges();
 
 });

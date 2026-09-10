@@ -289,6 +289,849 @@ body {
 
 
 /* =========================================
+   MODAL DE PRODUTO
+========================================= */
+
+.product-modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 5000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background-color: rgba(0, 0, 0, 0.55);
+}
+
+
+.product-modal {
+    width: 100%;
+    max-width: 550px;
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background-color: #ffffff;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+
+/* =========================================
+   CABEÇALHO DO MODAL
+========================================= */
+
+.product-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 25px;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+
+.product-modal-header h2 {
+    margin-bottom: 5px;
+
+    font-size: 24px;
+
+    color: #222222;
+}
+
+
+.product-modal-header p {
+    color: #666666;
+
+    font-size: 14px;
+}
+
+
+.product-modal-close {
+    width: 35px;
+    height: 35px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #f5f5f5;
+
+    color: #555555;
+
+    font-size: 24px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.product-modal-close:hover {
+    background-color: #c62828;
+    color: #ffffff;
+}
+
+
+/* =========================================
+   FORMULÁRIO
+========================================= */
+
+.product-form {
+    padding: 25px;
+}
+
+
+.product-form-group {
+    margin-bottom: 18px;
+}
+
+
+.product-form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    color: #333333;
+}
+
+
+.product-form-group input,
+.product-form-group textarea,
+.product-form-group select {
+    width: 100%;
+
+    padding: 12px 13px;
+
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+
+    color: #222222;
+
+    font-family: inherit;
+    font-size: 15px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.product-form-group textarea {
+    min-height: 100px;
+
+    resize: vertical;
+}
+
+
+.product-form-group input:focus,
+.product-form-group textarea:focus,
+.product-form-group select:focus {
+    border-color: #c62828;
+
+    box-shadow:
+        0 0 0 3px rgba(198, 40, 40, 0.10);
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.product-form-status {
+    margin-bottom: 20px;
+}
+
+
+.product-form-status label {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #333333;
+
+    cursor: pointer;
+}
+
+
+.product-form-status input {
+    width: 17px;
+    height: 17px;
+
+    accent-color: #c62828;
+}
+
+
+/* =========================================
+   AÇÕES
+========================================= */
+
+.product-form-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding-top: 10px;
+}
+
+
+.product-cancel-button,
+.product-save-button {
+    padding: 11px 18px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.product-cancel-button {
+    border: 1px solid #dddddd;
+
+    background-color: #ffffff;
+
+    color: #555555;
+}
+
+
+.product-cancel-button:hover {
+    background-color: #f5f5f5;
+}
+
+
+.product-save-button {
+    border: none;
+
+    background-color: #c62828;
+
+    color: #ffffff;
+}
+
+
+.product-save-button:hover {
+    background-color: #a00000;
+}
+
+
+.product-save-button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+/* =========================================
+   AÇÕES DOS PRODUTOS
+========================================= */
+
+.admin-product-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 18px 20px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+}
+
+
+.admin-product-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+
+.admin-edit-button {
+    padding: 9px 14px;
+
+    border: none;
+    border-radius: 7px;
+
+    background-color: #c62828;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.admin-edit-button:hover {
+    background-color: #a00000;
+}
+
+
+/* =========================================
+   AJUDA DA IMAGEM
+========================================= */
+
+.product-image-help {
+    display: block;
+
+    margin-top: 7px;
+
+    color: #888888;
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   PREVIEW DA IMAGEM
+========================================= */
+
+.product-image-preview-container {
+    margin-bottom: 20px;
+
+    padding: 15px;
+
+    border: 1px solid #eeeeee;
+    border-radius: 10px;
+
+    background-color: #fafafa;
+}
+
+
+.product-image-preview-container>span {
+    display: block;
+
+    margin-bottom: 10px;
+
+    color: #666666;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.product-image-preview-container img {
+    display: none;
+
+    width: 140px;
+    height: 100px;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+
+    border: 1px solid #dddddd;
+}
+
+
+.product-image-preview-container img.show {
+    display: block;
+}
+
+
+/* =========================================
+   INPUT DE ARQUIVO
+========================================= */
+
+.product-form-group input[type="file"] {
+    padding: 10px;
+
+    cursor: pointer;
+}
+
+
+/* =========================================
+   CARDS CLICÁVEIS DO DASHBOARD
+========================================= */
+
+.admin-card-button {
+    width: 100%;
+
+    border: 1px solid #e5e5e5;
+
+    font-family: inherit;
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+
+.admin-card-button:hover {
+    transform: translateY(-3px);
+
+    border-color: #c62828;
+
+    box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.10);
+}
+
+
+.admin-card-button small {
+    color: #c62828;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* =========================================
+   OPÇÕES DO PRODUTO
+========================================= */
+
+.product-options-section {
+    margin-top: 25px;
+    padding-top: 20px;
+
+    border-top: 1px solid #eeeeee;
+}
+
+
+.product-options-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 15px;
+}
+
+
+.product-options-header h3 {
+    margin-bottom: 4px;
+
+    font-size: 18px;
+
+    color: #222222;
+}
+
+
+.product-options-header p {
+    color: #777777;
+
+    font-size: 13px;
+}
+
+
+.product-add-option-button {
+    flex-shrink: 0;
+
+    padding: 9px 13px;
+
+    border: none;
+    border-radius: 7px;
+
+    background-color: #c62828;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.product-add-option-button:hover {
+    background-color: #a00000;
+}
+
+
+.product-options-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.product-options-empty {
+    padding: 15px;
+
+    border: 1px dashed #dddddd;
+    border-radius: 8px;
+
+    color: #888888;
+
+    font-size: 13px;
+
+    text-align: center;
+}
+
+
+.product-option-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(130px, 1fr) 100px auto auto auto;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 10px;
+
+    border: 1px solid #eeeeee;
+    border-radius: 8px;
+
+    background-color: #fafafa;
+}
+
+
+.product-option-row.new-option {
+    background-color: #fff8f8;
+
+    border-color: #f0cccc;
+}
+
+
+.product-option-row input[type="text"],
+.product-option-row input[type="number"] {
+    width: 100%;
+
+    padding: 9px;
+
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+
+    background-color: #ffffff;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+}
+
+
+.product-option-row input:focus {
+    border-color: #c62828;
+}
+
+
+.product-option-active {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+.product-option-active input {
+    accent-color: #c62828;
+}
+
+
+.product-option-save-button,
+.product-option-delete-button {
+    padding: 8px 10px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.product-option-save-button {
+    border: none;
+
+    background-color: #c62828;
+    color: #ffffff;
+}
+
+
+.product-option-save-button:hover {
+    background-color: #a00000;
+}
+
+
+.product-option-delete-button {
+    border: 1px solid #dddddd;
+
+    background-color: #ffffff;
+
+    color: #c62828;
+}
+
+
+.product-option-delete-button:hover {
+    background-color: #ffebee;
+}
+
+.product-option-row.new-option {
+    background-color: #fff8f8;
+    border-color: #f0cccc;
+}
+
+/* =========================================
+   BOTÃO EXCLUIR PRODUTO
+========================================= */
+
+.admin-delete-button {
+    padding: 9px 14px;
+
+    border: 1px solid #c62828;
+    border-radius: 7px;
+
+    background-color: #ffffff;
+    color: #c62828;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.admin-delete-button:hover {
+    background-color: #c62828;
+    color: #ffffff;
+}
+
+
+/* =========================================
+   CONTROLE DE STATUS DO PRODUTO
+========================================= */
+
+.product-status-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* =========================================
+   SWITCH
+========================================= */
+
+.product-status-switch {
+    position: relative;
+
+    display: inline-block;
+
+    width: 44px;
+    height: 24px;
+
+    flex-shrink: 0;
+}
+
+
+.product-status-switch input {
+    width: 0;
+    height: 0;
+
+    opacity: 0;
+}
+
+
+.product-status-slider {
+    position: absolute;
+
+    inset: 0;
+
+    cursor: pointer;
+
+    background-color: #cccccc;
+
+    border-radius: 999px;
+
+    transition: 0.2s;
+}
+
+
+.product-status-slider::before {
+    content: "";
+
+    position: absolute;
+
+    width: 18px;
+    height: 18px;
+
+    left: 3px;
+    top: 3px;
+
+    background-color: #ffffff;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.20);
+
+    transition: 0.2s;
+}
+
+
+.product-status-switch input:checked+.product-status-slider {
+    background-color: #2e7d32;
+}
+
+
+.product-status-switch input:checked+.product-status-slider::before {
+    transform: translateX(20px);
+}
+
+
+.product-status-switch input:disabled+.product-status-slider {
+    opacity: 0.6;
+
+    cursor: wait;
+}
+
+
+.product-status-text {
+    min-width: 48px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    color: #2e7d32;
+}
+
+@media (max-width: 700px) {
+
+    .product-options-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .product-add-option-button {
+        width: 100%;
+    }
+
+
+    .product-option-row {
+        grid-template-columns: 1fr;
+    }
+
+
+    .product-option-active {
+        padding: 3px 0;
+    }
+
+
+    .product-option-save-button,
+    .product-option-delete-button {
+        width: 100%;
+    }
+
+}
+
+/* =========================================
+   RESPONSIVO
+========================================= */
+
+@media (max-width: 600px) {
+
+    .admin-product-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+
+    .admin-product-actions {
+        width: 100%;
+    }
+
+
+    .admin-edit-button {
+        width: 100%;
+    }
+
+}
+
+/* =========================================
+   RESPONSIVO
+========================================= */
+
+@media (max-width: 600px) {
+
+    .product-modal-overlay {
+        padding: 12px;
+    }
+
+
+    .product-modal {
+        max-height: 95vh;
+
+        border-radius: 12px;
+    }
+
+
+    .product-modal-header {
+        padding: 20px;
+    }
+
+
+    .product-form {
+        padding: 20px;
+    }
+
+
+    .product-form-actions {
+        flex-direction: column-reverse;
+    }
+
+
+    .product-cancel-button,
+    .product-save-button {
+        width: 100%;
+    }
+
+}
+
+/* =========================================
    RESPONSIVO
 ========================================= */
 
