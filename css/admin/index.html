@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Login | Pizzaria Almeida</title>
+
+    <link
+        rel="stylesheet"
+        href="css/admin-login.css"
+    >
+
+</head>
+
+<body>
+
+    <main class="admin-login">
+
+        <div class="admin-login-card">
+
+            <div class="admin-login-brand">
+
+                <div class="admin-logo-icon">
+                    🍕
+                </div>
+
+                <h1>
+                    Pizzaria Almeida
+                </h1>
+
+                <p>
+                    Painel Administrativo
+                </p>
+
+            </div>
+
+
+            <div class="admin-login-divider"></div>
+
+
+            <form id="adminLoginForm">
+
+                <div class="login-form-group">
+
+                    <label for="adminEmail">
+                        E-mail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="adminEmail"
+                        placeholder="Digite seu e-mail"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="login-form-group">
+
+                    <label for="adminPassword">
+                        Senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="admin-login-button"
+                >
+                    Entrar
+                </button>
+
+            </form>
+
+
+            <p class="admin-login-footer">
+                Acesso restrito ao administrador
+            </p>
+
+        </div>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="/js/supabase.js"></script>
+
+    <script src="js/auth.js"></script>
+
+</body>
+
+</html>

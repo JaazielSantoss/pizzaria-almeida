@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Painel | Pizzaria Almeida</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+
+</head>
+
+<body>
+
+    <div class="admin-layout">
+
+        <!-- SIDEBAR -->
+
+        <aside class="admin-sidebar">
+
+            <div class="admin-logo">
+
+                <h1>
+                    Pizzaria Almeida
+                </h1>
+
+                <span>
+                    Painel administrativo
+                </span>
+
+            </div>
+
+
+            <nav class="admin-nav">
+
+                <button class="admin-nav-item active" data-section="dashboard">
+                    Dashboard
+                </button>
+
+
+                <button class="admin-nav-item" data-section="products">
+                    Produtos
+                </button>
+
+
+                <button class="admin-nav-item" data-section="orders">
+                    Pedidos
+                </button>
+
+
+                <button class="admin-nav-item" data-section="customers">
+                    Clientes
+                </button>
+
+            </nav>
+
+
+            <button class="admin-logout" id="adminLogout">
+                Sair
+            </button>
+
+        </aside>
+
+
+        <!-- CONTEÚDO -->
+
+        <main class="admin-main">
+
+            <header class="admin-header">
+
+                <div>
+
+                    <h2 id="adminPageTitle">
+                        Dashboard
+                    </h2>
+
+                    <p>
+                        Gerencie a Pizzaria Almeida
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <!-- DASHBOARD -->
+
+            <section class="admin-section active" id="section-dashboard">
+
+                <div class="admin-cards">
+
+                    <div class="admin-card">
+
+                        <span>
+                            Produtos
+                        </span>
+
+                        <strong id="totalProducts">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="admin-card">
+
+                        <span>
+                            Pedidos
+                        </span>
+
+                        <strong id="totalOrders">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="admin-card">
+
+                        <span>
+                            Clientes
+                        </span>
+
+                        <strong id="totalCustomers">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PRODUTOS -->
+
+            <section class="admin-section" id="section-products">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h3>
+                            Produtos
+                        </h3>
+
+                        <p>
+                            Gerencie o cardápio
+                        </p>
+
+                    </div>
+
+
+                    <button class="admin-primary-button" id="newProductButton">
+                        + Novo produto
+                    </button>
+
+                </div>
+
+
+                <div class="products-admin-list" id="productsAdminList">
+
+                    <p>
+                        Carregando produtos...
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- PEDIDOS -->
+
+            <section class="admin-section" id="section-orders">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h3>
+                            Pedidos
+                        </h3>
+
+                        <p>
+                            Acompanhe os pedidos
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="admin-placeholder">
+
+                    <p>
+                        Os pedidos aparecerão aqui.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- CLIENTES -->
+
+            <section class="admin-section" id="section-customers">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h3>
+                            Clientes
+                        </h3>
+
+                        <p>
+                            Consulte os clientes
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="admin-placeholder">
+
+                    <p>
+                        Os clientes aparecerão aqui.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/supabase.js"></script>
+    <script src="js/guard.js"></script>
+    <script src="js/admin.js"></script>
+
+</body>
+
+</html>

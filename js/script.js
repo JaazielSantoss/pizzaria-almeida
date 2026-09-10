@@ -1,6 +1,6 @@
 /* =========================================
    PIZZARIA ALMEIDA
-   CARRINHO + CHECKOUT
+   CARRINHO + SUPABASE + CHECKOUT
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -38,31 +38,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
+       ELEMENTOS DO CARDÁPIO
+    ========================================= */
+
+    const productsContainer =
+        document.querySelector(".menu-products");
+
+    const filterButtons =
+        document.querySelectorAll(
+            ".menu-categories button"
+        );
+
+
+    /* =========================================
        ESTADO DO CARRINHO
     ========================================= */
 
-    let cart =
-        JSON.parse(
-            localStorage.getItem(
-                "pizzariaAlmeidaCart"
-            )
-        ) || [];
+    let cart = loadLocalStorage(
+        "pizzariaAlmeidaCart",
+        []
+    );
 
 
     /* =========================================
        DADOS DO CLIENTE
     ========================================= */
 
-    let customerData =
-        JSON.parse(
-            localStorage.getItem(
-                "pizzariaAlmeidaCustomer"
-            )
-        ) || {};
+    let customerData = loadLocalStorage(
+        "pizzariaAlmeidaCustomer",
+        {}
+    );
 
 
     /* =========================================
-       FORMATAÇÃO DE PREÇO
+       FILTRO ATUAL
+    ========================================= */
+
+    let currentFilter = "todos";
+
+
+    /* =========================================
+       FORMATAR PREÇO
     ========================================= */
 
     function formatPrice(value) {
@@ -85,12 +101,45 @@ document.addEventListener("DOMContentLoaded", () => {
     function parsePrice(priceText) {
 
         return Number(
-            priceText
+            String(priceText)
                 .replace("R$", "")
                 .replace(/\./g, "")
                 .replace(",", ".")
                 .trim()
         );
+
+    }
+
+
+    /* =========================================
+       LER LOCALSTORAGE COM SEGURANÇA
+    ========================================= */
+
+    function loadLocalStorage(key, fallback) {
+
+        try {
+
+            const saved =
+                localStorage.getItem(key);
+
+
+            if (!saved) {
+                return fallback;
+            }
+
+
+            return JSON.parse(saved);
+
+        } catch (error) {
+
+            console.error(
+                `Erro ao carregar ${key}:`,
+                error
+            );
+
+            return fallback;
+
+        }
 
     }
 
@@ -129,17 +178,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openCart() {
 
-        if (!cartPanel) {
-            return;
+        if (cartPanel) {
+
+            cartPanel.classList.add(
+                "open"
+            );
+
         }
-
-
-        cartPanel.classList.add("open");
 
 
         if (cartOverlay) {
 
-            cartOverlay.classList.add("open");
+            cartOverlay.classList.add(
+                "open"
+            );
 
         }
 
@@ -211,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       CLICAR FORA
+       CLICAR FORA DO CARRINHO
     ========================================= */
 
     if (cartOverlay) {
@@ -223,164 +275,403 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
+
     /* =========================================
-   FILTRO DO CARDÁPIO
-========================================= */
+       SUPABASE
+    ========================================= */
 
-    const filterButtons =
-        document.querySelectorAll(".menu-categories button");
-
-    const productCards =
-        document.querySelectorAll(".product-card");
+    let supabaseProducts = [];
 
 
-    filterButtons.forEach((button) => {
+    /* =========================================
+       CARREGAR PRODUTOS DO SUPABASE
+    ========================================= */
 
-        button.addEventListener("click", () => {
+    async function loadProductsFromSupabase() {
 
-            const selectedFilter =
-                button.dataset.filter;
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
 
+            console.error(
+                "supabaseClient não foi encontrado."
+            );
 
-            /* ATIVA O BOTÃO SELECIONADO */
+            return;
 
-            filterButtons.forEach((filterButton) => {
-
-                filterButton.classList.remove("active");
-
-            });
-
-
-            button.classList.add("active");
-
-
-            /* FILTRA OS PRODUTOS */
-
-            productCards.forEach((card) => {
-
-                const category =
-                    card.dataset.category;
+        }
 
 
-                if (
-                    selectedFilter === "todos" ||
-                    category === selectedFilter
-                ) {
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("products")
+                .select(
+                    "id, slug, name, description, price, category, image_url, active"
+                )
+                .eq(
+                    "active",
+                    true
+                )
+                .order(
+                    "id",
+                    {
+                        ascending: true
+                    }
+                );
 
-                    card.style.display = "flex";
 
-                } else {
+        if (error) {
 
-                    card.style.display = "none";
+            console.error(
+                "Erro ao carregar produtos do Supabase:",
+                error
+            );
 
-                }
+            return;
 
-            });
+        }
+
+
+        supabaseProducts =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        console.log(
+            "Produtos carregados do Supabase:",
+            supabaseProducts
+        );
+
+
+        renderProducts(
+            supabaseProducts
+        );
+
+    }
+
+
+    /* =========================================
+       RENDERIZAR PRODUTOS
+    ========================================= */
+
+    function renderProducts(products) {
+
+        if (!productsContainer) {
+            return;
+        }
+
+
+        productsContainer.innerHTML =
+            "";
+
+
+        products.forEach((product) => {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "product-card";
+
+
+            card.dataset.category =
+                product.category;
+
+
+            card.dataset.product =
+                product.slug;
+
+
+            /* =========================================
+               IMAGEM
+            ========================================= */
+
+            const imageContainer =
+                document.createElement(
+                    "div"
+                );
+
+
+            imageContainer.className =
+                "product-image";
+
+
+            const image =
+                document.createElement(
+                    "img"
+                );
+
+
+            image.src =
+                product.image_url;
+
+
+            image.alt =
+                product.name;
+
+
+            image.loading =
+                "lazy";
+
+
+            imageContainer.appendChild(
+                image
+            );
+
+
+            /* =========================================
+               CONTEÚDO
+            ========================================= */
+
+            const content =
+                document.createElement(
+                    "div"
+                );
+
+
+            content.className =
+                "product-content";
+
+
+            const title =
+                document.createElement(
+                    "h3"
+                );
+
+
+            title.textContent =
+                product.name;
+
+
+            const description =
+                document.createElement(
+                    "p"
+                );
+
+
+            description.textContent =
+                product.description ||
+                "";
+
+
+            /* =========================================
+               RODAPÉ
+            ========================================= */
+
+            const footer =
+                document.createElement(
+                    "div"
+                );
+
+
+            footer.className =
+                "product-footer";
+
+
+            const price =
+                document.createElement(
+                    "strong"
+                );
+
+
+            price.textContent =
+                formatPrice(
+                    product.price
+                );
+
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.className =
+                "add-product";
+
+
+            button.type =
+                "button";
+
+
+            button.textContent =
+                "Adicionar";
+
+
+            footer.appendChild(
+                price
+            );
+
+
+            footer.appendChild(
+                button
+            );
+
+
+            content.appendChild(
+                title
+            );
+
+
+            content.appendChild(
+                description
+            );
+
+
+            content.appendChild(
+                footer
+            );
+
+
+            card.appendChild(
+                imageContainer
+            );
+
+
+            card.appendChild(
+                content
+            );
+
+
+            productsContainer.appendChild(
+                card
+            );
 
         });
 
-    });
+
+        initializeProductButtons();
+
+        applyCurrentFilter();
+
+    }
 
 
     /* =========================================
-       ADICIONAR PRODUTO
+       BOTÕES DOS PRODUTOS
     ========================================= */
 
-    const addButtons =
-        document.querySelectorAll(
-            ".add-product"
-        );
+    function initializeProductButtons() {
+
+        const addButtons =
+            productsContainer
+                ?.querySelectorAll(
+                    ".add-product"
+                );
 
 
-    addButtons.forEach((button) => {
+        if (!addButtons) {
+            return;
+        }
 
-        button.addEventListener(
-            "click",
-            () => {
 
-                const productCard =
-                    button.closest(
-                        ".product-card"
+        addButtons.forEach((button) => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const productCard =
+                        button.closest(
+                            ".product-card"
+                        );
+
+
+                    if (!productCard) {
+                        return;
+                    }
+
+
+                    const productId =
+                        productCard.dataset.product;
+
+
+                    const product =
+                        supabaseProducts.find(
+                            (item) =>
+                                item.slug ===
+                                productId
+                        );
+
+
+                    if (!product) {
+
+                        console.error(
+                            "Produto não encontrado:",
+                            productId
+                        );
+
+                        return;
+
+                    }
+
+
+                    addProductToCart(
+                        product
                     );
-
-
-                if (!productCard) {
-                    return;
-                }
-
-
-                const id =
-                    productCard.dataset.product;
-
-
-                const name =
-                    productCard
-                        .querySelector("h3")
-                        ?.textContent
-                        .trim() || "";
-
-
-                const description =
-                    productCard
-                        .querySelector("p")
-                        ?.textContent
-                        .trim() || "";
-
-
-                const priceText =
-                    productCard
-                        .querySelector("strong")
-                        ?.textContent
-                        .trim() || "";
-
-
-                const price =
-                    parsePrice(
-                        priceText
-                    );
-
-
-                const existingProduct =
-                    cart.find(
-                        (product) =>
-                            product.id === id
-                    );
-
-
-                if (existingProduct) {
-
-                    existingProduct.quantity += 1;
-
-                } else {
-
-                    cart.push({
-
-                        id: id,
-
-                        name: name,
-
-                        description:
-                            description,
-
-                        price: price,
-
-                        quantity: 1
-
-                    });
 
                 }
+            );
+
+        });
+
+    }
 
 
-                saveCart();
+    /* =========================================
+       ADICIONAR PRODUTO AO CARRINHO
+    ========================================= */
 
-                renderCart();
+    function addProductToCart(product) {
 
-                openCart();
+        const existingProduct =
+            cart.find(
+                (item) =>
+                    item.id === product.slug
+            );
 
-            }
-        );
 
-    });
+        if (existingProduct) {
+
+            existingProduct.quantity += 1;
+
+        } else {
+
+            cart.push({
+
+                id: product.slug,
+
+                name: product.name,
+
+                description:
+                    product.description ||
+                    "",
+
+                price:
+                    Number(product.price),
+
+                quantity: 1
+
+            });
+
+        }
+
+
+        saveCart();
+
+        renderCart();
+
+        openCart();
+
+    }
 
 
     /* =========================================
@@ -394,8 +685,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 return total +
                     (
-                        product.price *
-                        product.quantity
+                        Number(product.price) *
+                        Number(product.quantity)
                     );
 
             },
@@ -416,7 +707,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 (total, product) => {
 
                     return total +
-                        product.quantity;
+                        Number(product.quantity);
 
                 },
                 0
@@ -444,13 +735,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        const subtotal =
-            calculateSubtotal();
-
-
         cartSubtotalElement.textContent =
             formatPrice(
-                subtotal
+                calculateSubtotal()
             );
 
     }
@@ -474,15 +761,18 @@ document.addEventListener("DOMContentLoaded", () => {
             "18"
         );
 
+
         svg.setAttribute(
             "height",
             "18"
         );
 
+
         svg.setAttribute(
             "viewBox",
             "0 0 24 24"
         );
+
 
         svg.setAttribute(
             "fill",
@@ -552,10 +842,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "";
 
 
-        /* =========================================
-           CARRINHO VAZIO
-        ========================================= */
-
         if (cart.length === 0) {
 
             const emptyMessage =
@@ -585,10 +871,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
-
-        /* =========================================
-           PRODUTOS DO CARRINHO
-        ========================================= */
 
         cart.forEach((product) => {
 
@@ -822,10 +1104,6 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-            /* =========================================
-               MONTAR CONTROLES
-            ========================================= */
-
             controls.appendChild(
                 decreaseButton
             );
@@ -845,10 +1123,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 removeButton
             );
 
-
-            /* =========================================
-               MONTAR ITEM
-            ========================================= */
 
             cartItem.appendChild(
                 productInfo
@@ -914,6 +1188,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
+       FILTROS
+    ========================================= */
+
+    filterButtons.forEach((button) => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                currentFilter =
+                    button.dataset.filter ||
+                    "todos";
+
+
+                filterButtons.forEach(
+                    (filterButton) => {
+
+                        filterButton.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                applyCurrentFilter();
+
+            }
+        );
+
+    });
+
+
+    /* =========================================
+       APLICAR FILTRO ATUAL
+    ========================================= */
+
+    function applyCurrentFilter() {
+
+        if (!productsContainer) {
+            return;
+        }
+
+
+        const cards =
+            productsContainer.querySelectorAll(
+                ".product-card"
+            );
+
+
+        cards.forEach((card) => {
+
+            const category =
+                card.dataset.category;
+
+
+            const showCard =
+                currentFilter === "todos" ||
+                category === currentFilter;
+
+
+            card.style.display =
+                showCard
+                    ? "flex"
+                    : "none";
+
+        });
+
+    }
+
+
+    /* =========================================
        CHECKOUT
     ========================================= */
 
@@ -947,7 +1298,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <div class="checkout-header">
 
-                    <h2>Finalizar pedido</h2>
+                    <h2>
+                        Finalizar pedido
+                    </h2>
+
 
                     <button
                         type="button"
@@ -967,7 +1321,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     data-step="1"
                 >
 
-                    <h3>Seus dados</h3>
+                    <h3>
+                        Seus dados
+                    </h3>
+
 
                     <form
                         class="checkout-form"
@@ -976,9 +1333,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerName">
+                            <label
+                                for="customerName"
+                            >
                                 Nome
                             </label>
+
 
                             <input
                                 type="text"
@@ -992,9 +1352,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerPhone">
+                            <label
+                                for="customerPhone"
+                            >
                                 WhatsApp
                             </label>
+
 
                             <input
                                 type="tel"
@@ -1008,9 +1371,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerCep">
+                            <label
+                                for="customerCep"
+                            >
                                 CEP
                             </label>
+
 
                             <input
                                 type="text"
@@ -1025,9 +1391,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerStreet">
+                            <label
+                                for="customerStreet"
+                            >
                                 Rua / Avenida
                             </label>
+
 
                             <input
                                 type="text"
@@ -1041,9 +1410,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerNumber">
+                            <label
+                                for="customerNumber"
+                            >
                                 Número
                             </label>
+
 
                             <input
                                 type="text"
@@ -1057,9 +1429,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerComplement">
+                            <label
+                                for="customerComplement"
+                            >
                                 Complemento
                             </label>
+
 
                             <input
                                 type="text"
@@ -1072,9 +1447,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerNeighborhood">
+                            <label
+                                for="customerNeighborhood"
+                            >
                                 Bairro
                             </label>
+
 
                             <input
                                 type="text"
@@ -1088,9 +1466,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerCity">
+                            <label
+                                for="customerCity"
+                            >
                                 Cidade
                             </label>
+
 
                             <input
                                 type="text"
@@ -1104,9 +1485,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="customerState">
+                            <label
+                                for="customerState"
+                            >
                                 Estado
                             </label>
+
 
                             <input
                                 type="text"
@@ -1120,9 +1504,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         <div class="form-group">
 
-                            <label for="orderNote">
+                            <label
+                                for="orderNote"
+                            >
                                 Observação
                             </label>
+
 
                             <textarea
                                 id="orderNote"
@@ -1203,9 +1590,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <div class="cash-change">
 
-                        <label for="changeFor">
+                        <label
+                            for="changeFor"
+                        >
                             Troco para
                         </label>
+
 
                         <input
                             type="text"
@@ -1250,18 +1640,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     </h3>
 
 
-                    <div class="review-items"></div>
+                    <div
+                        class="review-items"
+                    ></div>
 
 
-                    <div class="review-address"></div>
+                    <div
+                        class="review-address"
+                    ></div>
 
 
-                    <div class="review-payment"></div>
+                    <div
+                        class="review-payment"
+                    ></div>
 
 
                     <div class="review-total">
 
-                        <span>Total</span>
+                        <span>
+                            Total
+                        </span>
+
 
                         <strong>
                             R$ 0,00
@@ -1354,7 +1753,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        /* FECHAR CHECKOUT */
+        /* =========================================
+           FECHAR CHECKOUT
+        ========================================= */
 
         closeCheckoutButton.addEventListener(
             "click",
@@ -1362,7 +1763,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* TROCAR ETAPA */
+        /* =========================================
+           TROCAR ETAPA
+        ========================================= */
 
         function showCheckoutStep(
             stepNumber
@@ -1380,7 +1783,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     step.classList.toggle(
                         "active",
                         currentStep ===
-                        stepNumber
+                            stepNumber
                     );
 
                 }
@@ -1396,7 +1799,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /* SALVAR DADOS */
+        /* =========================================
+           SALVAR DADOS DO CLIENTE
+        ========================================= */
 
         customerForm.addEventListener(
             "submit",
@@ -1506,7 +1911,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* VOLTAR */
+        /* =========================================
+           VOLTAR
+        ========================================= */
 
         checkoutBack.addEventListener(
             "click",
@@ -1518,7 +1925,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* PAGAMENTO */
+        /* =========================================
+           PAGAMENTO
+        ========================================= */
 
         nextPayment.addEventListener(
             "click",
@@ -1553,7 +1962,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* VOLTAR DA REVISÃO */
+        /* =========================================
+           VOLTAR DA REVISÃO
+        ========================================= */
 
         backPayment.addEventListener(
             "click",
@@ -1565,7 +1976,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* CONFIRMAR */
+        /* =========================================
+           CONFIRMAR
+        ========================================= */
 
         confirmOrder.addEventListener(
             "click",
@@ -1587,7 +2000,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (cart.length === 0) {
 
-            alert(
+            window.alert(
                 "Adicione pelo menos um produto ao carrinho."
             );
 
@@ -1599,6 +2012,7 @@ document.addEventListener("DOMContentLoaded", () => {
         createCheckout();
 
         closeCart();
+
 
         checkoutOverlay.classList.add(
             "open"
@@ -1639,7 +2053,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       CARREGAR CLIENTE
+       CARREGAR DADOS DO CLIENTE
     ========================================= */
 
     function loadCustomerData() {
@@ -1738,7 +2152,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       REVISÃO DO PEDIDO
+       RENDERIZAR REVISÃO
     ========================================= */
 
     function renderReview() {
@@ -1770,6 +2184,18 @@ document.addEventListener("DOMContentLoaded", () => {
             checkoutOverlay.querySelector(
                 ".review-total strong"
             );
+
+
+        if (
+            !reviewItems ||
+            !reviewAddress ||
+            !reviewPayment ||
+            !reviewTotal
+        ) {
+
+            return;
+
+        }
 
 
         reviewItems.innerHTML =
@@ -1835,25 +2261,40 @@ document.addEventListener("DOMContentLoaded", () => {
             </h4>
 
             <p>
-                ${escapeHtml(customerData.street)},
-                ${escapeHtml(customerData.number)}
-                ${customerData.complement
-                ? ` - ${escapeHtml(customerData.complement)}`
-                : ""
-            }
+                ${escapeHtml(
+                    customerData.street
+                )},
+                ${escapeHtml(
+                    customerData.number
+                )}
+                ${
+                    customerData.complement
+                        ? ` - ${escapeHtml(
+                            customerData.complement
+                        )}`
+                        : ""
+                }
             </p>
 
             <p>
-                ${escapeHtml(customerData.neighborhood)}
+                ${escapeHtml(
+                    customerData.neighborhood
+                )}
                 -
-                ${escapeHtml(customerData.city)}
+                ${escapeHtml(
+                    customerData.city
+                )}
                 /
-                ${escapeHtml(customerData.state)}
+                ${escapeHtml(
+                    customerData.state
+                )}
             </p>
 
             <p>
                 CEP:
-                ${escapeHtml(customerData.cep)}
+                ${escapeHtml(
+                    customerData.cep
+                )}
             </p>
 
         `;
@@ -1867,23 +2308,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <p>
                 ${escapeHtml(
-            customerData.payment ||
-            "Pix"
-        )}
+                    customerData.payment ||
+                    "Pix"
+                )}
             </p>
 
-            ${customerData.payment ===
-                "Dinheiro" &&
+            ${
+                customerData.payment ===
+                    "Dinheiro" &&
                 customerData.changeFor
-                ? `
+                    ? `
                         <p>
                             Troco para:
                             ${escapeHtml(
-                    customerData.changeFor
-                )}
+                                customerData.changeFor
+                            )}
                         </p>
                     `
-                : ""
+                    : ""
             }
 
         `;
@@ -1898,13 +2340,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       ENVIAR PARA WHATSAPP
+       ENVIAR PEDIDO PARA WHATSAPP
     ========================================= */
 
     function sendOrderToWhatsApp() {
 
         /*
-         * SUBSTITUIR PELO WHATSAPP REAL
+         * TROQUE PELO WHATSAPP REAL
          * DA PIZZARIA ALMEIDA.
          */
 
@@ -1997,7 +2439,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (
             customerData.payment ===
-            "Dinheiro" &&
+                "Dinheiro" &&
             customerData.changeFor
         ) {
 
@@ -2022,7 +2464,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       PROTEÇÃO CONTRA HTML INJETADO
+       ESCAPAR HTML
     ========================================= */
 
     function escapeHtml(value) {
@@ -2091,5 +2533,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     renderCart();
+
+    loadProductsFromSupabase();
 
 });

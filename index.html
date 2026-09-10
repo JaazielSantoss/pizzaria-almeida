@@ -2,62 +2,127 @@
 <html lang="pt-BR">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Pizzaria Almeida</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
 </head>
 
 <body>
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
 
     <header class="header">
 
         <div class="header-container">
 
-            <a href="index.html" class="logo">
+            <a
+                href="index.html"
+                class="logo"
+            >
                 Pizzaria Almeida
             </a>
+
+
             <div class="header-actions">
+
                 <nav class="menu">
-                    <a href="#inicio">Início</a>
-                    <a href="#cardapio">Cardápio</a>
-                    <a href="#sobre">Sobre nós</a>
-                    <a href="#contato">Contato</a>
+
+                    <a href="#inicio">
+                        Início
+                    </a>
+
+                    <a href="#cardapio">
+                        Cardápio
+                    </a>
+
+                    <a href="#sobre">
+                        Sobre nós
+                    </a>
+
+                    <a href="#contato">
+                        Contato
+                    </a>
+
                 </nav>
 
-                <button class="cart-button">
-                    🛒
-                    <span class="cart-count">0</span>
-                </button>
-            </div>
 
+                <button
+                    class="cart-button"
+                    type="button"
+                    aria-label="Abrir carrinho"
+                >
+
+                    🛒
+
+                    <span class="cart-count">
+                        0
+                    </span>
+
+                </button>
+
+            </div>
 
         </div>
 
     </header>
 
 
+    <!-- =========================================
+         CONTEÚDO PRINCIPAL
+    ========================================== -->
+
     <main>
 
-        <section id="inicio" class="hero">
+        <!-- =========================================
+             HERO
+        ========================================== -->
+
+        <section
+            id="inicio"
+            class="hero"
+        >
 
             <div class="hero-container">
 
                 <div class="hero-content">
 
                     <h1>
+
                         Bateu aquela vontade
-                        <span>de pizza?</span>
+
+                        <span>
+                            de pizza?
+                        </span>
+
                     </h1>
 
+
                     <p>
+
                         Escolha sua favorita, monte seu pedido
                         e receba no conforto da sua casa.
+
                     </p>
 
-                    <a href="#cardapio" class="hero-button">
+
+                    <a
+                        href="#cardapio"
+                        class="hero-button"
+                    >
                         Ver cardápio
                     </a>
 
@@ -68,369 +133,117 @@
         </section>
 
 
-        <section id="cardapio" class="menu-section">
+        <!-- =========================================
+             CARDÁPIO
+        ========================================== -->
+
+        <section
+            id="cardapio"
+            class="menu-section"
+        >
 
             <div class="section-container">
 
-                <h2>Nosso Cardápio</h2>
+                <h2>
+                    Nosso Cardápio
+                </h2>
+
 
                 <p class="section-description">
                     Escolha sua pizza favorita
                 </p>
 
+
+                <!-- FILTROS -->
+
                 <div class="menu-categories">
 
-                    <button class="active" data-filter="todos">
+                    <button
+                        type="button"
+                        class="active"
+                        data-filter="todos"
+                    >
                         Todos
                     </button>
 
-                    <button data-filter="pizzas">
+
+                    <button
+                        type="button"
+                        data-filter="pizzas"
+                    >
                         Pizzas
                     </button>
 
-                    <button data-filter="pizzas-doces">
+
+                    <button
+                        type="button"
+                        data-filter="pizzas-doces"
+                    >
                         Pizzas Doces
                     </button>
 
-                    <button data-filter="bebidas-2l">
+
+                    <button
+                        type="button"
+                        data-filter="bebidas-2l"
+                    >
                         Bebidas 2 litros
                     </button>
 
-                    <button data-filter="bebidas-lata">
+
+                    <button
+                        type="button"
+                        data-filter="bebidas-lata"
+                    >
                         Bebidas Lata
                     </button>
 
                 </div>
 
 
-                <div class="menu-products">
+                <!-- PRODUTOS
+                     Os produtos serão
+                     carregados pelo Supabase
+                -->
 
-                    <!-- PIZZAS -->
-
-                    <article class="product-card" data-category="pizzas" data-product="pizza-calabresa">
-                        <div class="product-image">
-                            <img src="img/pizza-de-calabresa.png" alt="Pizza de Calabresa">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Calabresa</h3>
-                            <p>
-                                Molho de tomate, mussarela, calabresa e cebola.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 39,90</strong>
-
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="pizzas" data-product="pizza-frango-catupiry">
-                        <div class="product-image">
-                            <img src="img/pizza-de-frango-catupiry.png" alt="Pizza de Frango com Catupiry">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Frango com Catupiry</h3>
-                            <p>
-                                Molho de tomate, mussarela, frango desfiado e catupiry.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 44,90</strong>
-
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="pizzas" data-product="pizza-calabresa-catupiry">
-                        <div class="product-image">
-                            <img src="img/pizza-de-calabresa-catupiry.png" alt="Pizza de Calabresa com Catupiry">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Calabresa com Catupiry</h3>
-                            <p>
-                                Molho de tomate, mussarela, calabresa e catupiry.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 44,90</strong>
-
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="pizzas" data-product="pizza-portuguesa">
-                        <div class="product-image">
-                            <img src="img/pizza-de-portuguesa.png" alt="Pizza Portuguesa">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza Portuguesa</h3>
-                            <p>
-                                Molho de tomate, mussarela, presunto, calabresa,
-                                cebola, ovo e azeitona.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 44,90</strong>
-
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- PIZZAS DOCES -->
-
-                    <article class="product-card" data-category="pizzas-doces" data-product="pizza-chocolate-morango">
-                        <div class="product-image">
-                            <img src="img/pizza-de-chocolate-morango.png" alt="Pizza de Chocolate com Morango">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Chocolate com Morango</h3>
-                            <p>
-                                Chocolate ao leite, morangos frescos e leite condensado.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 49,90</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="pizzas-doces"
-                        data-product="pizza-chocolate-branco-morango">
-                        <div class="product-image">
-                            <img src="img/pizza-de-chocolate-branco-morango.png"
-                                alt="Pizza de Chocolate Branco com Morango">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Chocolate Branco com Morango</h3>
-                            <p>
-                                Chocolate branco, morangos frescos e leite condensado.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 49,90</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="pizzas-doces" data-product="pizza-chocolate-banana">
-                        <div class="product-image">
-                            <img src="img/pizza-de-chocolate-banana.png" alt="Pizza de Chocolate com Banana">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Chocolate com Banana</h3>
-                            <p>
-                                Chocolate ao leite, banana e leite condensado.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 47,90</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="pizzas-doces"
-                        data-product="pizza-chocolate-branco-banana">
-                        <div class="product-image">
-                            <img src="img/pizza-de-chocolate-branco-banana.png"
-                                alt="Pizza de Chocolate Branco com Banana">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pizza de Chocolate Branco com Banana</h3>
-                            <p>
-                                Chocolate branco, banana e leite condensado.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 47,90</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- BEBIDAS 2L -->
-
-                    <article class="product-card" data-category="bebidas-2l" data-product="coca-cola-2l">
-                        <div class="product-image">
-                            <img src="img/coca-cola-2l.png" alt="Coca-Cola 2 litros">
-                        </div>
-                        <div class="product-content">
-                            <h3>Coca-Cola 2L</h3>
-                            <p>
-                                Refrigerante Coca-Cola 2 litros.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 12,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="bebidas-2l" data-product="guarana-antarctica-2l">
-                        <div class="product-image">
-                            <img src="img/guarana-2l.png" alt="Guaraná Antarctica 2 litros">
-                        </div>
-                        <div class="product-content">
-                            <h3>Guaraná Antarctica 2L</h3>
-                            <p>
-                                Refrigerante Guaraná Antarctica 2 litros.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 10,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="bebidas-2l" data-product="fanta-uva-2l">
-                        <div class="product-image">
-                            <img src="img/fanta-uva-2l.png" alt="Fanta Uva 2 litros">
-                        </div>
-                        <div class="product-content">
-                            <h3>Fanta Uva 2L</h3>
-                            <p>
-                                Refrigerante Fanta Uva 2 litros.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 10,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="bebidas-2l" data-product="pepsi-2l">
-                        <div class="product-image">
-                            <img src="img/pepsi-2l.png" alt="Pepsi 2 litros">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pepsi 2L</h3>
-                            <p>
-                                Refrigerante Pepsi 2 litros.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 10,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- BEBIDAS LATA -->
-
-                    <article class="product-card" data-category="bebidas-lata" data-product="coca-cola-lata">
-                        <div class="product-image">
-                            <img src="img/coca-cola-lata.png" alt="Coca-Cola lata">
-                        </div>
-                        <div class="product-content">
-                            <h3>Coca-Cola Lata</h3>
-                            <p>
-                                Refrigerante Coca-Cola em lata.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 6,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="bebidas-lata" data-product="guarana-antarctica-lata">
-                        <div class="product-image">
-                            <img src="img/guarana-lata.png" alt="Guaraná Antarctica lata">
-                        </div>
-                        <div class="product-content">
-                            <h3>Guaraná Antarctica Lata</h3>
-                            <p>
-                                Refrigerante Guaraná Antarctica em lata.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 5,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="bebidas-lata" data-product="fanta-uva-lata">
-                        <div class="product-image">
-                            <img src="img/fanta-uva-lata.png" alt="Fanta Uva lata">
-                        </div>
-                        <div class="product-content">
-                            <h3>Fanta Uva Lata</h3>
-                            <p>
-                                Refrigerante Fanta Uva em lata.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 5,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="product-card" data-category="bebidas-lata" data-product="pepsi-lata">
-                        <div class="product-image">
-                            <img src="img/pepsi-lata.png" alt="Pepsi lata">
-                        </div>
-                        <div class="product-content">
-                            <h3>Pepsi Lata</h3>
-                            <p>
-                                Refrigerante Pepsi em lata.
-                            </p>
-                            <div class="product-footer">
-                                <strong>R$ 5,00</strong>
-                                <button class="add-product">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                </div>
+                <div class="menu-products"></div>
 
             </div>
 
         </section>
 
 
-        <section id="sobre" class="about-section">
+        <!-- =========================================
+             SOBRE
+        ========================================== -->
+
+        <section
+            id="sobre"
+            class="about-section"
+        >
 
             <div class="section-container">
 
-                <h2>Sobre a Pizzaria Almeida</h2>
+                <h2>
+                    Sobre a Pizzaria Almeida
+                </h2>
+
 
                 <p>
-                    A Pizzaria Almeida faz parte da região do Jardim Realce,
-                    em Suzano, oferecendo pizzas e opções para diferentes momentos.
+
+                    A Pizzaria Almeida faz parte da região
+                    do Jardim Realce, em Suzano, oferecendo
+                    pizzas e opções para diferentes momentos.
+
                 </p>
 
+
                 <p>
-                    Nosso objetivo é proporcionar uma experiência saborosa,
-                    prática e especial em cada pedido.
+
+                    Nosso objetivo é proporcionar uma
+                    experiência saborosa, prática e especial
+                    em cada pedido.
+
                 </p>
 
             </div>
@@ -438,23 +251,44 @@
         </section>
 
 
-        <section id="contato" class="contact-section">
+        <!-- =========================================
+             CONTATO
+        ========================================== -->
+
+        <section
+            id="contato"
+            class="contact-section"
+        >
 
             <div class="section-container">
 
-                <h2>Entre em contato</h2>
+                <h2>
+                    Entre em contato
+                </h2>
+
 
                 <p>
-                    Av. Ângelo Bianconi, 14 - Jardim Realce,
+
+                    Av. Ângelo Bianconi, 14 -
+                    Jardim Realce,
                     Suzano - SP
+
                 </p>
 
-                <p>
-                    Telefone: (11) 4742-1633
-                </p>
 
                 <p>
-                    Instagram: @pizza_riaalmeida
+
+                    Telefone:
+                    (11) 4742-1633
+
+                </p>
+
+
+                <p>
+
+                    Instagram:
+                    @pizza_riaalmeida
+
                 </p>
 
             </div>
@@ -464,24 +298,51 @@
     </main>
 
 
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
     <footer class="footer">
 
         <p>
-            © 2026 Pizzaria Almeida. Todos os direitos reservados.
+
+            © 2026 Pizzaria Almeida.
+            Todos os direitos reservados.
             Desenvolvido por JJ Identidade Visual.
+
         </p>
 
     </footer>
 
+
+    <!-- =========================================
+         OVERLAY DO CARRINHO
+    ========================================== -->
+
     <div class="cart-overlay"></div>
 
-    <aside class="cart-panel">
+
+    <!-- =========================================
+         CARRINHO
+    ========================================== -->
+
+    <aside
+        class="cart-panel"
+        aria-label="Carrinho de compras"
+    >
 
         <div class="cart-header">
 
-            <h2>Seu Carrinho</h2>
+            <h2>
+                Seu Carrinho
+            </h2>
 
-            <button class="close-cart">
+
+            <button
+                class="close-cart"
+                type="button"
+                aria-label="Fechar carrinho"
+            >
                 ×
             </button>
 
@@ -491,7 +352,9 @@
         <div class="cart-items">
 
             <p class="cart-empty">
+
                 Seu carrinho está vazio.
+
             </p>
 
         </div>
@@ -501,7 +364,10 @@
 
             <div class="cart-total">
 
-                <span>Subtotal</span>
+                <span>
+                    Subtotal
+                </span>
+
 
                 <strong>
                     R$ 0,00
@@ -510,12 +376,18 @@
             </div>
 
 
-            <button class="clear-cart">
+            <button
+                class="clear-cart"
+                type="button"
+            >
                 Limpar carrinho
             </button>
 
 
-            <button class="checkout-button">
+            <button
+                class="checkout-button"
+                type="button"
+            >
                 Continuar para finalizar
             </button>
 
@@ -523,6 +395,14 @@
 
     </aside>
 
+
+    <!-- =========================================
+         SCRIPTS
+    ========================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/supabase.js"></script>
 
     <script src="js/script.js"></script>
 
