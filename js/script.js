@@ -4356,7 +4356,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         let message =
-            "Olá! Gostaria de fazer um pedido\n\n";
+            "Olá! Gostaria de fazer um pedido \n\n";
 
 
         message +=
