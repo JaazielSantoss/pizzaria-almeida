@@ -1,23 +1,85 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
 
+    /* =========================================
+       ELEMENTOS
+    ========================================= */
+
+    const navItems =
+        document.querySelectorAll(".admin-nav-item");
+
+
+    const sections =
+        document.querySelectorAll(".admin-section");
+
+
+    const pageTitle =
+        document.querySelector("#adminPageTitle");
+
+
+    const logoutButton =
+        document.querySelector("#adminLogout");
+
+
+    const productsAdminList =
+        document.querySelector("#productsAdminList");
+
+
+    const totalProducts =
+        document.querySelector("#totalProducts");
+
+
+    const newProductButton =
+        document.querySelector("#newProductButton");
+
+
+    const dashboardCards =
+        document.querySelectorAll(".admin-card-button");
+
+
+    const categoriesAdminList =
+        document.querySelector("#categoriesAdminList");
+
+
+    const newCategoryButton =
+        document.querySelector("#newCategoryButton");
+
+
+    const storeSettingsForm =
+        document.querySelector("#storeSettingsForm");
+
+
+    const addDeliveryZoneButton =
+        document.querySelector("#addDeliveryZoneButton");
+
+
+    const deliveryZonesList =
+        document.querySelector("#deliveryZonesList");
+
 
     /* =========================================
-   PERFIL DO USUÁRIO
-========================================= */
+       PERFIL DO USUÁRIO
+    ========================================= */
 
     let currentUserRole = null;
 
+
     async function loadCurrentUserRole() {
 
-        console.log("INICIANDO LEITURA DO PERFIL");
+        console.log(
+            "INICIANDO LEITURA DO PERFIL"
+        );
+
 
         const {
             data: {
                 user
             },
             error: userError
-        } = await supabaseClient.auth.getUser();
+        } =
+            await supabaseClient
+                .auth
+                .getUser();
 
 
         if (userError || !user) {
@@ -27,7 +89,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 userError
             );
 
-            return;
+            return false;
 
         }
 
@@ -39,7 +101,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             await supabaseClient
                 .from("user_profiles")
                 .select("role")
-                .eq("id", user.id)
+                .eq(
+                    "id",
+                    user.id
+                )
                 .single();
 
 
@@ -50,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 error
             );
 
-            return;
+            return false;
 
         }
 
@@ -64,173 +129,305 @@ document.addEventListener("DOMContentLoaded", async () => {
             currentUserRole
         );
 
+
+        return true;
+
     }
 
-    /* =========================================
-       ELEMENTOS
-    ========================================= */
-
-    const navItems =
-        document.querySelectorAll(".admin-nav-item");
-
-    const sections =
-        document.querySelectorAll(".admin-section");
-
-    const pageTitle =
-        document.querySelector("#adminPageTitle");
-
-    const logoutButton =
-        document.querySelector("#adminLogout");
-
-    const productsAdminList =
-        document.querySelector("#productsAdminList");
-
-    const totalProducts =
-        document.querySelector("#totalProducts");
-
-    const newProductButton =
-        document.querySelector("#newProductButton");
-
-    const dashboardCards =
-        document.querySelectorAll(".admin-card-button");
-
-    const categoriesAdminList =
-        document.querySelector("#categoriesAdminList");
-
-    const newCategoryButton =
-        document.querySelector("#newCategoryButton");
-
 
     /* =========================================
-       DASHBOARD - CARDS CLICÁVEIS
+       APLICAR PERMISSÕES
     ========================================= */
 
-    dashboardCards.forEach((card) => {
+    function applyUserPermissions() {
 
-        card.addEventListener(
-            "click",
-            () => {
-
-                const sectionName =
-                    card.dataset.section;
+        const isAdmin =
+            currentUserRole === "admin";
 
 
-                const navButton =
-                    document.querySelector(
-                        `.admin-nav-item[data-section="${sectionName}"]`
-                    );
+        /* =========================================
+           NOVO PRODUTO
+        ========================================= */
+
+        if (newProductButton) {
+
+            newProductButton.style.display =
+                isAdmin
+                    ? ""
+                    : "none";
+
+        }
 
 
-                if (navButton) {
+        /* =========================================
+           NOVA CATEGORIA
+        ========================================= */
 
-                    navButton.click();
+        if (newCategoryButton) {
+
+            newCategoryButton.style.display =
+                isAdmin
+                    ? ""
+                    : "none";
+
+        }
+
+
+        /* =========================================
+           ITENS DA SIDEBAR
+        ========================================= */
+
+        document
+            .querySelectorAll(
+                ".admin-nav-item"
+            )
+            .forEach(
+                (button) => {
+
+                    const sectionName =
+                        button.dataset.section;
+
+
+                    if (
+                        !isAdmin &&
+                        (
+                            sectionName ===
+                            "orders" ||
+
+                            sectionName ===
+                            "customers" ||
+
+                            sectionName ===
+                            "settings"
+                        )
+                    ) {
+
+                        button.style.display =
+                            "none";
+
+                    }
 
                 }
+            );
 
-            }
-        );
 
-    });
+        /* =========================================
+           CARDS DO DASHBOARD
+        ========================================= */
+
+        document
+            .querySelectorAll(
+                ".admin-card-button"
+            )
+            .forEach(
+                (card) => {
+
+                    const sectionName =
+                        card.dataset.section;
+
+
+                    if (
+                        !isAdmin &&
+                        (
+                            sectionName ===
+                            "orders" ||
+
+                            sectionName ===
+                            "customers"
+                        )
+                    ) {
+
+                        card.style.display =
+                            "none";
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    /* =========================================
+       DASHBOARD - CARDS
+    ========================================= */
+
+    dashboardCards.forEach(
+        (card) => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    const sectionName =
+                        card.dataset.section;
+
+
+                    const navButton =
+                        document.querySelector(
+                            `.admin-nav-item[data-section="${sectionName}"]`
+                        );
+
+
+                    if (navButton) {
+
+                        navButton.click();
+
+                    }
+
+                }
+            );
+
+        }
+    );
 
 
     /* =========================================
        NAVEGAÇÃO
     ========================================= */
 
-    navItems.forEach((button) => {
+    navItems.forEach(
+        (button) => {
 
-        button.addEventListener(
-            "click",
-            () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-                const sectionName =
-                    button.dataset.section;
+                    const sectionName =
+                        button.dataset.section;
 
 
-                navItems.forEach((item) => {
+                    /* =========================================
+                       PROTEÇÃO VISUAL
+                    ========================================= */
 
-                    item.classList.remove(
+                    if (
+                        currentUserRole !== "admin" &&
+                        (
+                            sectionName ===
+                            "orders" ||
+
+                            sectionName ===
+                            "customers" ||
+
+                            sectionName ===
+                            "settings"
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    navItems.forEach(
+                        (item) => {
+
+                            item.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    sections.forEach(
+                        (section) => {
+
+                            section.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    button.classList.add(
                         "active"
                     );
 
-                });
+
+                    const selectedSection =
+                        document.querySelector(
+                            `#section-${sectionName}`
+                        );
 
 
-                sections.forEach((section) => {
+                    if (selectedSection) {
 
-                    section.classList.remove(
-                        "active"
-                    );
+                        selectedSection.classList.add(
+                            "active"
+                        );
 
-                });
-
-
-                button.classList.add(
-                    "active"
-                );
+                    }
 
 
-                const selectedSection =
-                    document.querySelector(
-                        `#section-${sectionName}`
-                    );
+                    const titles = {
+
+                        dashboard:
+                            "Dashboard",
+
+                        products:
+                            "Produtos",
+
+                        categories:
+                            "Categorias",
+
+                        orders:
+                            "Pedidos",
+
+                        customers:
+                            "Clientes",
+
+                        settings:
+                            "Configurações"
+
+                    };
 
 
-                if (selectedSection) {
+                    if (pageTitle) {
 
-                    selectedSection.classList.add(
-                        "active"
-                    );
+                        pageTitle.textContent =
+                            titles[sectionName] ||
+                            "Dashboard";
+
+                    }
+
+
+                    /* =========================================
+                       CATEGORIAS
+                    ========================================= */
+
+                    if (
+                        sectionName ===
+                        "categories"
+                    ) {
+
+                        loadCategories();
+
+                    }
+
+
+                    /* =========================================
+                       CONFIGURAÇÕES
+                    ========================================= */
+
+                    if (
+                        sectionName ===
+                        "settings"
+                    ) {
+
+                        loadStoreSettings();
+
+                        loadDeliveryZones();
+
+                    }
 
                 }
+            );
 
-
-                const titles = {
-
-                    dashboard:
-                        "Dashboard",
-
-                    products:
-                        "Produtos",
-
-                    categories:
-                        "Categorias",
-
-                    orders:
-                        "Pedidos",
-
-                    customers:
-                        "Clientes"
-
-                };
-
-
-                if (pageTitle) {
-
-                    pageTitle.textContent =
-                        titles[sectionName] ||
-                        "Dashboard";
-
-                }
-
-
-                /* =========================================
-                   CARREGAR CATEGORIAS AO ABRIR SEÇÃO
-                ========================================= */
-
-                if (
-                    sectionName ===
-                    "categories"
-                ) {
-
-                    loadCategories();
-
-                }
-
-            }
-        );
-
-    });
+        }
+    );
 
 
     /* =========================================
@@ -545,7 +742,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         /* =========================================
-           SWITCH ATIVO / INATIVO
+           OCULTAR PARA OPERATOR
+        ========================================= */
+
+        if (
+            currentUserRole !==
+            "admin"
+        ) {
+
+            editButton.style.display =
+                "none";
+
+
+            deleteButton.style.display =
+                "none";
+
+        }
+
+
+        /* =========================================
+           SWITCH
         ========================================= */
 
         const statusSwitch =
@@ -758,8 +974,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             await supabaseClient
                 .from("products")
                 .update({
+
                     active:
                         newStatus
+
                 })
                 .eq(
                     "id",
@@ -1130,6 +1348,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
+        /* =========================================
+           OCULTAR PARA OPERATOR
+        ========================================= */
+
+        if (
+            currentUserRole !==
+            "admin"
+        ) {
+
+            editButton.style.display =
+                "none";
+
+
+            deleteButton.style.display =
+                "none";
+
+        }
+
+
         actions.appendChild(
             statusContainer
         );
@@ -1186,8 +1423,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             await supabaseClient
                 .from("categories")
                 .update({
+
                     active:
                         newStatus
+
                 })
                 .eq(
                     "id",
@@ -1408,12 +1647,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     <div class="product-form-group">
 
-                        <label
-                            for="categoryName"
-                        >
+                        <label for="categoryName">
                             Nome
                         </label>
-
 
                         <input
                             type="text"
@@ -1427,12 +1663,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     <div class="product-form-group">
 
-                        <label
-                            for="categorySlug"
-                        >
+                        <label for="categorySlug">
                             Slug
                         </label>
-
 
                         <input
                             type="text"
@@ -1440,7 +1673,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                             placeholder="Ex.: combos"
                             required
                         >
-
 
                         <small>
                             Usado internamente para identificar a categoria.
@@ -1564,24 +1796,32 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
 
-        closeButton.addEventListener(
-            "click",
-            () => {
+        if (closeButton) {
 
-                overlay.remove();
+            closeButton.addEventListener(
+                "click",
+                () => {
 
-            }
-        );
+                    overlay.remove();
+
+                }
+            );
+
+        }
 
 
-        cancelButton.addEventListener(
-            "click",
-            () => {
+        if (cancelButton) {
 
-                overlay.remove();
+            cancelButton.addEventListener(
+                "click",
+                () => {
 
-            }
-        );
+                    overlay.remove();
+
+                }
+            );
+
+        }
 
 
         overlay.addEventListener(
@@ -1896,9 +2136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } =
             await supabaseClient
                 .from("products")
-                .select(
-                    "id"
-                )
+                .select("id")
                 .eq(
                     "category",
                     category.slug
@@ -2104,6 +2342,1006 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
+       CONFIGURAÇÕES DA LOJA
+    ========================================= */
+
+    async function loadStoreSettings() {
+
+        if (!storeSettingsForm) {
+            return;
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("store_settings")
+                .select(`
+                    id,
+                    store_name,
+                    phone,
+                    whatsapp,
+                    street,
+                    number,
+                    neighborhood,
+                    city,
+                    state,
+                    cep
+                `)
+                .limit(1)
+                .maybeSingle();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar configurações:",
+                error
+            );
+
+
+            alert(
+                "Não foi possível carregar as configurações da loja."
+            );
+
+
+            return;
+
+        }
+
+
+        if (!data) {
+
+            console.warn(
+                "Nenhuma configuração encontrada."
+            );
+
+
+            return;
+
+        }
+
+
+        storeSettingsForm.querySelector(
+            "#storeName"
+        ).value =
+            data.store_name ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storePhone"
+        ).value =
+            data.phone ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeWhatsapp"
+        ).value =
+            data.whatsapp ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeCep"
+        ).value =
+            data.cep ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeStreet"
+        ).value =
+            data.street ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeNumber"
+        ).value =
+            data.number ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeNeighborhood"
+        ).value =
+            data.neighborhood ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeCity"
+        ).value =
+            data.city ||
+            "";
+
+
+        storeSettingsForm.querySelector(
+            "#storeState"
+        ).value =
+            data.state ||
+            "";
+
+    }
+
+
+    /* =========================================
+       SALVAR CONFIGURAÇÕES
+    ========================================= */
+
+    async function saveStoreSettings() {
+
+        if (!storeSettingsForm) {
+            return false;
+        }
+
+
+        const storeName =
+            storeSettingsForm.querySelector(
+                "#storeName"
+            ).value.trim();
+
+
+        const phone =
+            storeSettingsForm.querySelector(
+                "#storePhone"
+            ).value.trim();
+
+
+        const whatsapp =
+            storeSettingsForm.querySelector(
+                "#storeWhatsapp"
+            ).value.trim();
+
+
+        const cep =
+            storeSettingsForm.querySelector(
+                "#storeCep"
+            ).value.trim();
+
+
+        const street =
+            storeSettingsForm.querySelector(
+                "#storeStreet"
+            ).value.trim();
+
+
+        const number =
+            storeSettingsForm.querySelector(
+                "#storeNumber"
+            ).value.trim();
+
+
+        const neighborhood =
+            storeSettingsForm.querySelector(
+                "#storeNeighborhood"
+            ).value.trim();
+
+
+        const city =
+            storeSettingsForm.querySelector(
+                "#storeCity"
+            ).value.trim();
+
+
+        const state =
+            storeSettingsForm.querySelector(
+                "#storeState"
+            ).value.trim();
+
+
+        if (!storeName) {
+
+            alert(
+                "Informe o nome da pizzaria."
+            );
+
+
+            return false;
+
+        }
+
+
+        const saveButton =
+            document.querySelector(
+                "#saveStoreSettingsButton"
+            );
+
+
+        if (saveButton) {
+
+            saveButton.disabled =
+                true;
+
+
+            saveButton.textContent =
+                "Salvando...";
+
+        }
+
+
+        try {
+
+            const {
+                data: existingSettings,
+                error: findError
+            } =
+                await supabaseClient
+                    .from("store_settings")
+                    .select("id")
+                    .limit(1)
+                    .maybeSingle();
+
+
+            if (findError) {
+                throw findError;
+            }
+
+
+            const settingsData = {
+
+                store_name:
+                    storeName,
+
+                phone:
+                    phone ||
+                    null,
+
+                whatsapp:
+                    whatsapp ||
+                    null,
+
+                street:
+                    street ||
+                    null,
+
+                number:
+                    number ||
+                    null,
+
+                neighborhood:
+                    neighborhood ||
+                    null,
+
+                city:
+                    city ||
+                    null,
+
+                state:
+                    state ||
+                    null,
+
+                cep:
+                    cep ||
+                    null,
+
+                updated_at:
+                    new Date().toISOString()
+
+            };
+
+
+            let saveError =
+                null;
+
+
+            if (existingSettings) {
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from("store_settings")
+                        .update(
+                            settingsData
+                        )
+                        .eq(
+                            "id",
+                            existingSettings.id
+                        );
+
+
+                saveError =
+                    error;
+
+            } else {
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from("store_settings")
+                        .insert(
+                            settingsData
+                        );
+
+
+                saveError =
+                    error;
+
+            }
+
+
+            if (saveError) {
+                throw saveError;
+            }
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao salvar configurações:",
+                error
+            );
+
+
+            alert(
+                "Não foi possível salvar as configurações."
+            );
+
+
+            return false;
+
+        } finally {
+
+            if (saveButton) {
+
+                saveButton.disabled =
+                    false;
+
+
+                saveButton.textContent =
+                    "Salvar configurações";
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================================
+       ADICIONAR NOVA FAIXA
+    ========================================= */
+
+    function addDeliveryZoneRow() {
+
+        if (!deliveryZonesList) {
+            return;
+        }
+
+
+        const emptyMessage =
+            deliveryZonesList.querySelector(
+                ".delivery-zones-empty"
+            );
+
+
+        if (emptyMessage) {
+
+            emptyMessage.remove();
+
+        }
+
+
+        const row =
+            document.createElement(
+                "div"
+            );
+
+
+        row.className =
+            "delivery-zone-row";
+
+
+        row.innerHTML = `
+
+            <div class="product-form-group">
+
+                <label>
+                    Distância máxima (km)
+                </label>
+
+                <input
+                    type="number"
+                    class="delivery-zone-distance"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="Ex.: 5"
+                >
+
+            </div>
+
+
+            <div class="product-form-group">
+
+                <label>
+                    Valor da entrega
+                </label>
+
+                <input
+                    type="number"
+                    class="delivery-zone-fee"
+                    min="0"
+                    step="0.01"
+                    placeholder="Ex.: 7,00"
+                >
+
+            </div>
+
+
+            <button
+                type="button"
+                class="admin-delete-button delivery-zone-remove"
+            >
+                Excluir
+            </button>
+
+        `;
+
+
+        const removeButton =
+            row.querySelector(
+                ".delivery-zone-remove"
+            );
+
+
+        removeButton.addEventListener(
+            "click",
+            () => {
+
+                row.remove();
+
+
+                if (
+                    deliveryZonesList.children.length ===
+                    0
+                ) {
+
+                    deliveryZonesList.innerHTML = `
+
+                        <p class="delivery-zones-empty">
+                            Nenhuma faixa de entrega cadastrada.
+                        </p>
+
+                    `;
+
+                }
+
+            }
+        );
+
+
+        deliveryZonesList.appendChild(
+            row
+        );
+
+
+        const distanceInput =
+            row.querySelector(
+                ".delivery-zone-distance"
+            );
+
+
+        if (distanceInput) {
+
+            distanceInput.focus();
+
+        }
+
+    }
+
+
+    /* =========================================
+       CARREGAR FAIXAS DE ENTREGA
+    ========================================= */
+
+    async function loadDeliveryZones() {
+
+        if (!deliveryZonesList) {
+            return;
+        }
+
+
+        deliveryZonesList.innerHTML =
+            `
+                <p class="delivery-zones-empty">
+                    Carregando faixas de entrega...
+                </p>
+            `;
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("delivery_zones")
+                .select(
+                    "id, max_distance_km, delivery_fee"
+                )
+                .order(
+                    "max_distance_km",
+                    {
+                        ascending: true
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar faixas de entrega:",
+                error
+            );
+
+
+            deliveryZonesList.innerHTML =
+                `
+                    <p class="delivery-zones-empty">
+                        Não foi possível carregar as faixas de entrega.
+                    </p>
+                `;
+
+
+            return;
+
+        }
+
+
+        deliveryZonesList.innerHTML =
+            "";
+
+
+        if (!data.length) {
+
+            deliveryZonesList.innerHTML =
+                `
+                    <p class="delivery-zones-empty">
+                        Nenhuma faixa de entrega cadastrada.
+                    </p>
+                `;
+
+
+            return;
+
+        }
+
+
+        data.forEach(
+            (zone) => {
+
+                createSavedDeliveryZoneRow(
+                    zone
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       CRIAR FAIXA SALVA
+    ========================================= */
+
+    function createSavedDeliveryZoneRow(
+        zone
+    ) {
+
+        const row =
+            document.createElement(
+                "div"
+            );
+
+
+        row.className =
+            "delivery-zone-row";
+
+
+        row.dataset.zoneId =
+            zone.id;
+
+
+        row.innerHTML = `
+
+            <div class="product-form-group">
+
+                <label>
+                    Distância máxima (km)
+                </label>
+
+                <input
+                    type="number"
+                    class="delivery-zone-distance"
+                    min="0.1"
+                    step="0.1"
+                    value="${zone.max_distance_km}"
+                >
+
+            </div>
+
+
+            <div class="product-form-group">
+
+                <label>
+                    Valor da entrega
+                </label>
+
+                <input
+                    type="number"
+                    class="delivery-zone-fee"
+                    min="0"
+                    step="0.01"
+                    value="${zone.delivery_fee}"
+                >
+
+            </div>
+
+
+            <button
+                type="button"
+                class="admin-delete-button delivery-zone-remove"
+            >
+                Excluir
+            </button>
+
+        `;
+
+
+        const removeButton =
+            row.querySelector(
+                ".delivery-zone-remove"
+            );
+
+
+        removeButton.addEventListener(
+            "click",
+            async () => {
+
+                await deleteDeliveryZone(
+                    zone.id
+                );
+
+            }
+        );
+
+
+        deliveryZonesList.appendChild(
+            row
+        );
+
+    }
+
+
+    /* =========================================
+       EXCLUIR FAIXA
+    ========================================= */
+
+    async function deleteDeliveryZone(
+        zoneId
+    ) {
+
+        const confirmed =
+            window.confirm(
+                "Deseja excluir esta faixa de entrega?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("delivery_zones")
+                .delete()
+                .eq(
+                    "id",
+                    zoneId
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao excluir faixa de entrega:",
+                error
+            );
+
+
+            alert(
+                "Não foi possível excluir a faixa de entrega."
+            );
+
+
+            return;
+
+        }
+
+
+        await loadDeliveryZones();
+
+    }
+
+
+    /* =========================================
+       SALVAR FAIXAS DE ENTREGA
+    ========================================= */
+
+    async function saveDeliveryZones() {
+
+        if (!deliveryZonesList) {
+            return false;
+        }
+
+
+        const rows =
+            deliveryZonesList.querySelectorAll(
+                ".delivery-zone-row"
+            );
+
+
+        const zones = [];
+
+
+        for (
+            const row of rows
+        ) {
+
+            const distanceInput =
+                row.querySelector(
+                    ".delivery-zone-distance"
+                );
+
+
+            const feeInput =
+                row.querySelector(
+                    ".delivery-zone-fee"
+                );
+
+
+            const maxDistance =
+                Number(
+                    distanceInput.value
+                );
+
+
+            const deliveryFee =
+                Number(
+                    feeInput.value
+                );
+
+
+            if (
+                !Number.isFinite(
+                    maxDistance
+                ) ||
+                maxDistance <= 0
+            ) {
+
+                alert(
+                    "Todas as distâncias precisam ser maiores que zero."
+                );
+
+
+                return false;
+
+            }
+
+
+            if (
+                !Number.isFinite(
+                    deliveryFee
+                ) ||
+                deliveryFee < 0
+            ) {
+
+                alert(
+                    "Todas as taxas de entrega precisam ser válidas."
+                );
+
+
+                return false;
+
+            }
+
+
+            zones.push({
+
+                max_distance_km:
+                    maxDistance,
+
+                delivery_fee:
+                    deliveryFee
+
+            });
+
+        }
+
+
+        zones.sort(
+            (a, b) =>
+                a.max_distance_km -
+                b.max_distance_km
+        );
+
+
+        for (
+            let i = 1;
+            i < zones.length;
+            i++
+        ) {
+
+            if (
+                zones[i].max_distance_km <=
+                zones[i - 1].max_distance_km
+            ) {
+
+                alert(
+                    "As distâncias máximas precisam ser diferentes."
+                );
+
+
+                return false;
+
+            }
+
+        }
+
+
+        const {
+            error: deleteError
+        } =
+            await supabaseClient
+                .from("delivery_zones")
+                .delete()
+                .not(
+                    "id",
+                    "is",
+                    null
+                );
+
+
+        if (deleteError) {
+
+            console.error(
+                "Erro ao limpar faixas:",
+                deleteError
+            );
+
+
+            alert(
+                "Não foi possível atualizar as faixas de entrega."
+            );
+
+
+            return false;
+
+        }
+
+
+        if (zones.length > 0) {
+
+            const {
+                error: insertError
+            } =
+                await supabaseClient
+                    .from("delivery_zones")
+                    .insert(
+                        zones
+                    );
+
+
+            if (insertError) {
+
+                console.error(
+                    "Erro ao inserir faixas:",
+                    insertError
+                );
+
+
+                alert(
+                    "Não foi possível salvar as faixas de entrega."
+                );
+
+
+                return false;
+
+            }
+
+        }
+
+
+        await loadDeliveryZones();
+
+
+        return true;
+
+    }
+
+
+    /* =========================================
+       BOTÃO + ADICIONAR DISTÂNCIA
+    ========================================= */
+
+    if (
+        addDeliveryZoneButton
+    ) {
+
+        addDeliveryZoneButton.addEventListener(
+            "click",
+            () => {
+
+                addDeliveryZoneRow();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
+       FORMULÁRIO DE CONFIGURAÇÕES
+    ========================================= */
+
+    if (
+        storeSettingsForm
+    ) {
+
+        storeSettingsForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                const settingsSaved =
+                    await saveStoreSettings();
+
+
+                if (
+                    !settingsSaved
+                ) {
+
+                    return;
+
+                }
+
+
+                const zonesSaved =
+                    await saveDeliveryZones();
+
+
+                if (
+                    !zonesSaved
+                ) {
+
+                    return;
+
+                }
+
+
+                alert(
+                    "Configurações e taxas de entrega salvas com sucesso."
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================
        MODAL BASE DO PRODUTO
     ========================================= */
 
@@ -2218,9 +3456,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                             id="productCategory"
                             required
                         >
+
                             <option value="">
                                 Carregando categorias...
                             </option>
+
                         </select>
 
                     </div>
@@ -2258,10 +3498,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     </div>
 
-
-                    <!-- =====================================
-                         ADICIONAIS
-                    ====================================== -->
 
                     <div class="product-options-section">
 
@@ -2304,10 +3540,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     </div>
 
-
-                    <!-- =====================================
-                         INGREDIENTES
-                    ====================================== -->
 
                     <div class="product-options-section">
 
@@ -2582,7 +3814,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             !name ||
             !description ||
             !category ||
-            !Number.isFinite(price) ||
+            !Number.isFinite(
+                price
+            ) ||
             price < 0
         ) {
 
@@ -2700,7 +3934,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
 
-            if (addons.length) {
+            if (
+                addons.length
+            ) {
 
                 const {
                     error
@@ -2743,7 +3979,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
 
-            if (ingredients.length) {
+            if (
+                ingredients.length
+            ) {
 
                 const {
                     error
@@ -2813,7 +4051,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       GERAR SLUG ÚNICO
+       SLUG ÚNICO
     ========================================= */
 
     async function createUniqueSlug(
@@ -3257,10 +4495,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
 
-        /* =========================================
-           PREENCHER
-        ========================================= */
-
         form.querySelector(
             "#productName"
         ).value =
@@ -3288,10 +4522,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             product.active;
 
 
-        /* =========================================
-           CATEGORIAS
-        ========================================= */
-
         await loadCategoriesIntoSelect(
             categorySelect,
             true
@@ -3302,11 +4532,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             product.category;
 
 
-        /* =========================================
-           IMAGEM
-        ========================================= */
-
-        if (product.image_url) {
+        if (
+            product.image_url
+        ) {
 
             const imageUrl =
                 product.image_url.startsWith(
@@ -3341,10 +4569,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
-        /* =========================================
-           CARREGAR OPÇÕES
-        ========================================= */
-
         await loadProductAddons(
             product.id,
             addonsList
@@ -3356,10 +4580,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             ingredientsList
         );
 
-
-        /* =========================================
-           NOVO ADICIONAL
-        ========================================= */
 
         addAddonButton.addEventListener(
             "click",
@@ -3374,10 +4594,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
-        /* =========================================
-           NOVO INGREDIENTE
-        ========================================= */
-
         addIngredientButton.addEventListener(
             "click",
             () => {
@@ -3390,10 +4606,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         );
 
-
-        /* =========================================
-           SALVAR
-        ========================================= */
 
         form.addEventListener(
             "submit",
@@ -3427,9 +4639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             error
         } =
             await supabaseClient
-                .from(
-                    "product_addons"
-                )
+                .from("product_addons")
                 .select(
                     "id, name, price, active"
                 )
@@ -3892,9 +5102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             error
         } =
             await supabaseClient
-                .from(
-                    "product_addons"
-                )
+                .from("product_addons")
                 .insert({
 
                     product_id:
@@ -4337,7 +5545,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       NOVO INGREDIENTE NA EDIÇÃO
+       NOVO INGREDIENTE
     ========================================= */
 
     function createIngredientEditorRow(
@@ -4726,7 +5934,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             !name ||
             !description ||
             !category ||
-            !Number.isFinite(price) ||
+            !Number.isFinite(
+                price
+            ) ||
             price < 0
         ) {
 
@@ -4866,7 +6076,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       EVENTOS DO MODAL
+       MODAL DO PRODUTO
     ========================================= */
 
     function setupModalCloseEvents(
@@ -4925,7 +6135,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       PREVIEW DA IMAGEM
+       PREVIEW IMAGEM
     ========================================= */
 
     function setupImagePreview(
@@ -5122,7 +6332,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       FECHAR MODAL DE PRODUTO
+       FECHAR MODAL
     ========================================= */
 
     function closeProductModal() {
@@ -5143,7 +6353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       EXTENSÃO DO ARQUIVO
+       EXTENSÃO
     ========================================= */
 
     function getFileExtension(
@@ -5164,7 +6374,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       LIMPAR NOME / GERAR SLUG
+       SANITIZAR
     ========================================= */
 
     function sanitizeFileName(
@@ -5195,7 +6405,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       ESC PARA FECHAR MODAL
+       ESC
     ========================================= */
 
     document.addEventListener(
@@ -5216,7 +6426,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       NOVO PRODUTO
+       BOTÃO NOVO PRODUTO
     ========================================= */
 
     if (newProductButton) {
@@ -5234,7 +6444,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /* =========================================
-       NOVA CATEGORIA
+       BOTÃO NOVA CATEGORIA
     ========================================= */
 
     if (newCategoryButton) {
@@ -5255,9 +6465,27 @@ document.addEventListener("DOMContentLoaded", async () => {
        CARGA INICIAL
     ========================================= */
 
-    await loadCurrentUserRole();
+    const profileLoaded =
+        await loadCurrentUserRole();
+
+
+    if (!profileLoaded) {
+
+        console.error(
+            "Não foi possível carregar o perfil do usuário."
+        );
+
+
+        return;
+
+    }
+
+
+    applyUserPermissions();
+
 
     await loadProducts();
+
 
     await loadCategories();
 

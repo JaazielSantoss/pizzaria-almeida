@@ -19,15 +19,18 @@
 
 </head>
 
+
 <body>
 
     <div class="admin-layout">
+
 
         <!-- =========================================
              SIDEBAR
         ========================================== -->
 
         <aside class="admin-sidebar">
+
 
             <div class="admin-logo">
 
@@ -43,6 +46,7 @@
 
 
             <nav class="admin-nav">
+
 
                 <button
                     type="button"
@@ -88,6 +92,16 @@
                     Clientes
                 </button>
 
+
+                <button
+                    type="button"
+                    class="admin-nav-item"
+                    data-section="settings"
+                >
+                    Configurações
+                </button>
+
+
             </nav>
 
 
@@ -99,7 +113,9 @@
                 Sair
             </button>
 
+
         </aside>
+
 
 
         <!-- =========================================
@@ -107,6 +123,11 @@
         ========================================== -->
 
         <main class="admin-main">
+
+
+            <!-- =========================================
+                 CABEÇALHO
+            ========================================== -->
 
             <header class="admin-header">
 
@@ -125,6 +146,7 @@
             </header>
 
 
+
             <!-- =========================================
                  DASHBOARD
             ========================================== -->
@@ -135,6 +157,7 @@
             >
 
                 <div class="admin-cards">
+
 
                     <button
                         type="button"
@@ -155,6 +178,7 @@
                         </small>
 
                     </button>
+
 
 
                     <button
@@ -178,6 +202,7 @@
                     </button>
 
 
+
                     <button
                         type="button"
                         class="admin-card admin-card-button"
@@ -198,9 +223,11 @@
 
                     </button>
 
+
                 </div>
 
             </section>
+
 
 
             <!-- =========================================
@@ -213,6 +240,7 @@
             >
 
                 <div class="section-header">
+
 
                     <div>
 
@@ -227,6 +255,7 @@
                     </div>
 
 
+
                     <button
                         type="button"
                         class="admin-primary-button"
@@ -235,7 +264,9 @@
                         + Novo produto
                     </button>
 
+
                 </div>
+
 
 
                 <div
@@ -249,7 +280,9 @@
 
                 </div>
 
+
             </section>
+
 
 
             <!-- =========================================
@@ -262,6 +295,7 @@
             >
 
                 <div class="section-header">
+
 
                     <div>
 
@@ -276,6 +310,7 @@
                     </div>
 
 
+
                     <button
                         type="button"
                         class="admin-primary-button"
@@ -284,7 +319,9 @@
                         + Nova categoria
                     </button>
 
+
                 </div>
+
 
 
                 <div
@@ -298,7 +335,9 @@
 
                 </div>
 
+
             </section>
+
 
 
             <!-- =========================================
@@ -312,6 +351,7 @@
 
                 <div class="section-header">
 
+
                     <div>
 
                         <h3>
@@ -324,7 +364,9 @@
 
                     </div>
 
+
                 </div>
+
 
 
                 <div class="admin-placeholder">
@@ -335,7 +377,9 @@
 
                 </div>
 
+
             </section>
+
 
 
             <!-- =========================================
@@ -349,6 +393,7 @@
 
                 <div class="section-header">
 
+
                     <div>
 
                         <h3>
@@ -361,7 +406,9 @@
 
                     </div>
 
+
                 </div>
+
 
 
                 <div class="admin-placeholder">
@@ -372,24 +419,370 @@
 
                 </div>
 
+
             </section>
+
+
+
+            <!-- =========================================
+                 CONFIGURAÇÕES
+            ========================================== -->
+
+            <section
+                class="admin-section"
+                id="section-settings"
+            >
+
+
+                <div class="section-header">
+
+
+                    <div>
+
+                        <h3>
+                            Configurações da loja
+                        </h3>
+
+                        <p>
+                            Configure as informações da pizzaria.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <div class="admin-settings-card">
+
+
+                    <form
+                        id="storeSettingsForm"
+                    >
+
+
+                        <div class="settings-form-grid">
+
+
+                            <!-- =====================================
+                                 NOME
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeName"
+                                >
+                                    Nome da pizzaria
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeName"
+                                    required
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 TELEFONE
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storePhone"
+                                >
+                                    Telefone
+                                </label>
+
+
+                                <input
+                                    type="tel"
+                                    id="storePhone"
+                                    placeholder="(11) 99999-9999"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 WHATSAPP
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeWhatsapp"
+                                >
+                                    WhatsApp
+                                </label>
+
+
+                                <input
+                                    type="tel"
+                                    id="storeWhatsapp"
+                                    placeholder="(11) 99999-9999"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 CEP
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeCep"
+                                >
+                                    CEP
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeCep"
+                                    placeholder="00000-000"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 RUA
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeStreet"
+                                >
+                                    Rua / Avenida
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeStreet"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 NÚMERO
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeNumber"
+                                >
+                                    Número
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeNumber"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 BAIRRO
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeNeighborhood"
+                                >
+                                    Bairro
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeNeighborhood"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 CIDADE
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeCity"
+                                >
+                                    Cidade
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeCity"
+                                >
+
+                            </div>
+
+
+
+                            <!-- =====================================
+                                 ESTADO
+                            ====================================== -->
+
+                            <div class="product-form-group">
+
+                                <label
+                                    for="storeState"
+                                >
+                                    Estado
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="storeState"
+                                    maxlength="2"
+                                    placeholder="SP"
+                                >
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- =========================================
+                             FAIXAS DE ENTREGA
+                        ========================================== -->
+
+                        <div class="settings-delivery-section">
+
+
+                            <div class="settings-delivery-header">
+
+
+                                <div>
+
+                                    <h3>
+                                        Taxas de entrega
+                                    </h3>
+
+                                    <p>
+                                        Defina o valor cobrado conforme a distância.
+                                    </p>
+
+                                </div>
+
+
+
+                                <button
+                                    type="button"
+                                    class="admin-primary-button"
+                                    id="addDeliveryZoneButton"
+                                >
+                                    + Adicionar distância
+                                </button>
+
+
+                            </div>
+
+
+
+                            <div
+                                class="delivery-zones-list"
+                                id="deliveryZonesList"
+                            >
+
+                                <p class="delivery-zones-empty">
+                                    Nenhuma faixa de entrega cadastrada.
+                                </p>
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- =========================================
+                             SALVAR
+                        ========================================== -->
+
+                        <div class="product-form-actions">
+
+
+                            <button
+                                type="submit"
+                                class="product-save-button"
+                                id="saveStoreSettingsButton"
+                            >
+                                Salvar configurações
+                            </button>
+
+
+                        </div>
+
+
+                    </form>
+
+
+                </div>
+
+
+            </section>
+
 
         </main>
 
+
     </div>
+
 
 
     <!-- =========================================
          SUPABASE
     ========================================== -->
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
 
-    <script src="/js/supabase.js"></script>
 
-    <script src="js/guard.js"></script>
+    <script
+        src="/js/supabase.js"
+    ></script>
 
-    <script src="js/admin.js"></script>
+
+    <script
+        src="js/guard.js"
+    ></script>
+
+
+    <script
+        src="js/admin.js"
+    ></script>
+
 
 </body>
 

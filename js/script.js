@@ -3,6 +3,10 @@
 
    CARRINHO + SUPABASE + CHECKOUT
    CATEGORIAS DINÂMICAS + REALTIME
+   ENTREGA + CÁLCULO DE DISTÂNCIA
+   WHATSAPP DA LOJA VIA SUPABASE
+   CEP + PREENCHIMENTO AUTOMÁTICO
+   TROCO SOMENTE PARA DINHEIRO
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -70,6 +74,35 @@ document.addEventListener("DOMContentLoaded", () => {
             "pizzariaAlmeidaCustomer",
             {}
         );
+
+
+    /* =========================================
+       DADOS DA ENTREGA
+    ========================================= */
+
+    let deliveryDistanceKm =
+        Number(
+            customerData.deliveryDistanceKm
+        ) || null;
+
+    let deliveryFee =
+        Number(
+            customerData.deliveryFee
+        ) || 0;
+
+    let deliveryAvailable =
+        customerData.deliveryAvailable === true;
+
+    let calculatedDeliveryAddress =
+        "";
+
+
+    /* =========================================
+       WHATSAPP DA LOJA
+    ========================================= */
+
+    let storeWhatsapp =
+        "";
 
 
     /* =========================================
@@ -299,6 +332,93 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
+       CARREGAR WHATSAPP DA LOJA
+    ========================================= */
+
+    async function loadStoreWhatsapp() {
+
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            console.error(
+                "supabaseClient não foi encontrado."
+            );
+
+
+            return false;
+
+        }
+
+
+        try {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "get_store_whatsapp"
+                    );
+
+
+            if (error) {
+
+                console.error(
+                    "Erro ao carregar WhatsApp da loja:",
+                    error
+                );
+
+
+                return false;
+
+            }
+
+
+            storeWhatsapp =
+                typeof data ===
+                    "string"
+                    ? data.trim()
+                    : "";
+
+
+            if (!storeWhatsapp) {
+
+                console.warn(
+                    "WhatsApp da loja não está cadastrado."
+                );
+
+
+                return false;
+
+            }
+
+
+            console.log(
+                "WhatsApp da loja carregado."
+            );
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "Erro inesperado ao carregar WhatsApp:",
+                error
+            );
+
+
+            return false;
+
+        }
+
+    }
+
+
+    /* =========================================
        CARREGAR PRODUTOS DO SUPABASE
     ========================================= */
 
@@ -312,6 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(
                 "supabaseClient não foi encontrado."
             );
+
 
             return;
 
@@ -346,6 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
+
             return;
 
         }
@@ -371,7 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       CARREGAR CATEGORIAS DO SUPABASE
+       CARREGAR CATEGORIAS
     ========================================= */
 
     async function loadCategoriesFromSupabase() {
@@ -384,6 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(
                 "supabaseClient não foi encontrado."
             );
+
 
             return;
 
@@ -425,6 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
+
             return;
 
         }
@@ -435,12 +559,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? data
                 : [];
 
-
-        /*
-         * Se a categoria que estava selecionada
-         * deixou de existir ou foi desativada,
-         * voltamos para Todos.
-         */
 
         if (
             currentFilter !==
@@ -486,10 +604,6 @@ document.addEventListener("DOMContentLoaded", () => {
         categoriesContainer.innerHTML =
             "";
 
-
-        /* =========================================
-           TODOS
-        ========================================= */
 
         const allButton =
             document.createElement(
@@ -541,10 +655,6 @@ document.addEventListener("DOMContentLoaded", () => {
             allButton
         );
 
-
-        /* =========================================
-           CATEGORIAS
-        ========================================= */
 
         supabaseCategories.forEach(
             (category) => {
@@ -630,7 +740,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 button.classList.toggle(
                     "active",
                     button.dataset.filter ===
-                        currentFilter
+                    currentFilter
                 );
 
             }
@@ -653,6 +763,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(
                 "supabaseClient não foi encontrado para o Realtime."
             );
+
 
             return;
 
@@ -710,6 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(
                 "supabaseClient não foi encontrado para o Realtime das categorias."
             );
+
 
             return;
 
@@ -793,10 +905,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     product.slug;
 
 
-                /* =========================================
-                   IMAGEM
-                ========================================= */
-
                 const imageContainer =
                     document.createElement(
                         "div"
@@ -830,10 +938,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-                /* =========================================
-                   CONTEÚDO
-                ========================================= */
-
                 const content =
                     document.createElement(
                         "div"
@@ -864,10 +968,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     product.description ||
                     "";
 
-
-                /* =========================================
-                   RODAPÉ
-                ========================================= */
 
                 const footer =
                     document.createElement(
@@ -1017,6 +1117,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 productSlug
                             );
 
+
                             return;
 
                         }
@@ -1036,7 +1137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       ADICIONAR PRODUTO AO CARRINHO
+       ADICIONAR PRODUTO
     ========================================= */
 
     function addProductToCart(
@@ -1122,6 +1223,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
+       CALCULAR TOTAL
+    ========================================= */
+
+    function calculateTotal() {
+
+        return (
+            calculateSubtotal() +
+            (
+                Number(
+                    deliveryFee
+                ) || 0
+            )
+        );
+
+    }
+
+
+    /* =========================================
        ATUALIZAR CONTADOR
     ========================================= */
 
@@ -1176,7 +1295,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       ÍCONE DA LIXEIRA
+       ÍCONE LIXEIRA
     ========================================= */
 
     function createTrashIcon() {
@@ -1276,7 +1395,10 @@ document.addEventListener("DOMContentLoaded", () => {
             "";
 
 
-        if (cart.length === 0) {
+        if (
+            cart.length ===
+            0
+        ) {
 
             const emptyMessage =
                 document.createElement(
@@ -1318,10 +1440,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 cartItem.className =
                     "cart-item";
 
-
-                /* =========================================
-                   INFORMAÇÕES
-                ========================================= */
 
                 const productInfo =
                     document.createElement(
@@ -1369,10 +1487,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     productPrice
                 );
 
-
-                /* =========================================
-                   CONTROLES
-                ========================================= */
 
                 const controls =
                     document.createElement(
@@ -1459,10 +1573,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-                /* =========================================
-                   DIMINUIR
-                ========================================= */
-
                 decreaseButton.addEventListener(
                     "click",
                     () => {
@@ -1495,10 +1605,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-                /* =========================================
-                   AUMENTAR
-                ========================================= */
-
                 increaseButton.addEventListener(
                     "click",
                     () => {
@@ -1514,10 +1620,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 );
 
-
-                /* =========================================
-                   REMOVER
-                ========================================= */
 
                 removeButton.addEventListener(
                     "click",
@@ -1594,7 +1696,10 @@ document.addEventListener("DOMContentLoaded", () => {
             "click",
             () => {
 
-                if (cart.length === 0) {
+                if (
+                    cart.length ===
+                    0
+                ) {
 
                     return;
 
@@ -1628,7 +1733,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       APLICAR FILTRO ATUAL
+       APLICAR FILTRO
     ========================================= */
 
     function applyCurrentFilter() {
@@ -1655,9 +1760,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const showCard =
                     currentFilter ===
-                        "todos" ||
+                    "todos" ||
                     category ===
-                        currentFilter;
+                    currentFilter;
 
 
                 card.style.display =
@@ -1667,6 +1772,587 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
         );
+
+    }
+
+
+    /* =========================================
+       FORMATAR CEP
+    ========================================= */
+
+    function formatCep(value) {
+
+        const digits =
+            String(value)
+                .replace(
+                    /\D/g,
+                    ""
+                )
+                .slice(
+                    0,
+                    8
+                );
+
+
+        if (
+            digits.length <=
+            5
+        ) {
+
+            return digits;
+
+        }
+
+
+        return (
+            digits.slice(
+                0,
+                5
+            ) +
+            "-" +
+            digits.slice(
+                5
+            )
+
+        );
+
+    }
+
+
+    /* =========================================
+       LIMPAR ENDEREÇO
+    ========================================= */
+
+    function clearAddressFields(
+        streetInput,
+        neighborhoodInput,
+        cityInput,
+        stateInput
+    ) {
+
+        streetInput.value =
+            "";
+
+        neighborhoodInput.value =
+            "";
+
+        cityInput.value =
+            "";
+
+        stateInput.value =
+            "";
+
+
+        setAddressFieldsReadonly(
+            streetInput,
+            neighborhoodInput,
+            cityInput,
+            stateInput,
+            false
+        );
+
+    }
+
+
+    /* =========================================
+       BLOQUEAR / LIBERAR ENDEREÇO
+    ========================================= */
+
+    function setAddressFieldsReadonly(
+        streetInput,
+        neighborhoodInput,
+        cityInput,
+        stateInput,
+        readonly
+    ) {
+
+        streetInput.readOnly =
+            readonly;
+
+        neighborhoodInput.readOnly =
+            readonly;
+
+        cityInput.readOnly =
+            readonly;
+
+        stateInput.readOnly =
+            readonly;
+
+    }
+
+
+    /* =========================================
+       BUSCAR CEP NO VIACEP
+    ========================================= */
+
+    async function searchCep(
+        cepInput,
+        streetInput,
+        neighborhoodInput,
+        cityInput,
+        stateInput,
+        statusElement
+    ) {
+
+        const rawCep =
+            cepInput.value ||
+            "";
+
+
+        const cep =
+            rawCep.replace(
+                /\D/g,
+                ""
+            );
+
+
+        if (
+            !/^[0-9]{8}$/.test(
+                cep
+            )
+        ) {
+
+            statusElement.textContent =
+                "Digite um CEP válido.";
+
+
+            statusElement.className =
+                "cep-status error";
+
+
+            clearAddressFields(
+                streetInput,
+                neighborhoodInput,
+                cityInput,
+                stateInput
+            );
+
+
+            return false;
+
+        }
+
+
+        statusElement.textContent =
+            "Consultando CEP...";
+
+
+        statusElement.className =
+            "cep-status loading";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `https://viacep.com.br/ws/${cep}/json/`
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Não foi possível consultar o CEP."
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (data.erro) {
+
+                clearAddressFields(
+                    streetInput,
+                    neighborhoodInput,
+                    cityInput,
+                    stateInput
+                );
+
+
+                statusElement.textContent =
+                    "CEP não encontrado.";
+
+
+                statusElement.className =
+                    "cep-status error";
+
+
+                window.alert(
+                    "CEP não encontrado."
+                );
+
+
+                return false;
+
+            }
+
+
+            streetInput.value =
+                data.logradouro ||
+                "";
+
+
+            neighborhoodInput.value =
+                data.bairro ||
+                "";
+
+
+            cityInput.value =
+                data.localidade ||
+                "";
+
+
+            stateInput.value =
+                data.uf ||
+                "";
+
+
+            cepInput.value =
+                formatCep(
+                    cep
+                );
+
+
+            setAddressFieldsReadonly(
+                streetInput,
+                neighborhoodInput,
+                cityInput,
+                stateInput,
+                true
+            );
+
+
+            statusElement.textContent =
+                "Endereço encontrado.";
+
+
+            statusElement.className =
+                "cep-status success";
+
+
+            customerData.cep =
+                cepInput.value;
+
+
+            customerData.street =
+                streetInput.value.trim();
+
+
+            customerData.neighborhood =
+                neighborhoodInput.value.trim();
+
+
+            customerData.city =
+                cityInput.value.trim();
+
+
+            customerData.state =
+                stateInput.value.trim();
+
+
+            customerData.deliveryAvailable =
+                false;
+
+
+            customerData.deliveryFee =
+                0;
+
+
+            customerData.deliveryDistanceKm =
+                null;
+
+
+            deliveryAvailable =
+                false;
+
+
+            deliveryFee =
+                0;
+
+
+            deliveryDistanceKm =
+                null;
+
+
+            calculatedDeliveryAddress =
+                "";
+
+
+            saveCustomerData();
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao consultar CEP:",
+                error
+            );
+
+
+            statusElement.textContent =
+                "Erro ao consultar o CEP.";
+
+
+            statusElement.className =
+                "cep-status error";
+
+
+            window.alert(
+                "Não foi possível consultar o CEP. Tente novamente."
+            );
+
+
+            return false;
+
+        }
+
+    }
+
+
+    /* =========================================
+       CALCULAR ENTREGA
+    ========================================= */
+
+    async function calculateDeliveryFee() {
+
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            console.error(
+                "supabaseClient não foi encontrado."
+            );
+
+
+            window.alert(
+                "Não foi possível calcular a entrega."
+            );
+
+
+            return false;
+
+        }
+
+
+        const addressParts = [
+
+            customerData.street,
+
+            customerData.number,
+
+            customerData.neighborhood,
+
+            customerData.city,
+
+            customerData.state,
+
+            customerData.cep,
+
+            "Brasil"
+
+        ];
+
+
+        const address =
+            addressParts
+                .filter(
+                    (value) =>
+                        value !== null &&
+                        value !== undefined &&
+                        String(value).trim() !== ""
+                )
+                .map(
+                    (value) =>
+                        String(value).trim()
+                )
+                .join(
+                    ", "
+                );
+
+
+        if (!address) {
+
+            window.alert(
+                "Informe um endereço de entrega válido."
+            );
+
+
+            return false;
+
+        }
+
+
+        try {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .functions
+                    .invoke(
+                        "swift-endpoint",
+                        {
+                            body: {
+                                address:
+                                    address
+                            }
+                        }
+                    );
+
+
+            if (error) {
+
+                console.error(
+                    "Erro ao calcular entrega:",
+                    error
+                );
+
+
+                window.alert(
+                    "Não foi possível calcular a taxa de entrega. Tente novamente."
+                );
+
+
+                return false;
+
+            }
+
+
+            if (!data) {
+
+                console.error(
+                    "A Edge Function não retornou dados."
+                );
+
+
+                window.alert(
+                    "Não foi possível calcular a entrega."
+                );
+
+
+                return false;
+
+            }
+
+
+            console.log(
+                "Resultado da entrega:",
+                data
+            );
+
+
+            if (
+                data.deliveryAvailable !==
+                true
+            ) {
+
+                deliveryAvailable =
+                    false;
+
+
+                deliveryFee =
+                    0;
+
+
+                deliveryDistanceKm =
+                    Number(
+                        data.distanceKm
+                    ) || null;
+
+
+                customerData.deliveryAvailable =
+                    false;
+
+
+                customerData.deliveryFee =
+                    0;
+
+
+                customerData.deliveryDistanceKm =
+                    deliveryDistanceKm;
+
+
+                saveCustomerData();
+
+
+                window.alert(
+                    "No momento, não realizamos entregas neste endereço."
+                );
+
+
+                return false;
+
+            }
+
+
+            deliveryAvailable =
+                true;
+
+
+            deliveryFee =
+                Number(
+                    data.deliveryFee
+                ) || 0;
+
+
+            deliveryDistanceKm =
+                Number(
+                    data.distanceKm
+                ) || 0;
+
+
+            customerData.deliveryAvailable =
+                true;
+
+
+            customerData.deliveryFee =
+                deliveryFee;
+
+
+            customerData.deliveryDistanceKm =
+                deliveryDistanceKm;
+
+
+            saveCustomerData();
+
+
+            console.log(
+                "Entrega calculada:",
+                {
+                    distanceKm:
+                        deliveryDistanceKm,
+
+                    deliveryFee:
+                        deliveryFee
+                }
+            );
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "Erro inesperado ao calcular entrega:",
+                error
+            );
+
+
+            window.alert(
+                "Não foi possível calcular a entrega. Tente novamente."
+            );
+
+
+            return false;
+
+        }
 
     }
 
@@ -1752,6 +2438,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 type="text"
                                 id="customerName"
                                 placeholder="Digite seu nome"
+                                autocomplete="name"
                                 required
                             >
 
@@ -1769,26 +2456,39 @@ document.addEventListener("DOMContentLoaded", () => {
                                 type="tel"
                                 id="customerPhone"
                                 placeholder="(11) 99999-9999"
+                                autocomplete="tel"
                                 required
                             >
 
                         </div>
 
 
-                        <div class="form-group">
+                        <div class="form-group cep-group">
 
                             <label for="customerCep">
                                 CEP
                             </label>
 
 
-                            <input
-                                type="text"
-                                id="customerCep"
-                                placeholder="00000-000"
-                                maxlength="9"
-                                required
-                            >
+                            <div class="cep-input-row">
+
+                                <input
+                                    type="text"
+                                    id="customerCep"
+                                    placeholder="00000-000"
+                                    maxlength="9"
+                                    inputmode="numeric"
+                                    autocomplete="postal-code"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <small
+                                id="cepStatus"
+                                class="cep-status"
+                            ></small>
 
                         </div>
 
@@ -1804,6 +2504,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 type="text"
                                 id="customerStreet"
                                 placeholder="Rua / Avenida"
+                                autocomplete="street-address"
                                 required
                             >
 
@@ -1854,6 +2555,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 type="text"
                                 id="customerNeighborhood"
                                 placeholder="Seu bairro"
+                                autocomplete="address-level3"
                                 required
                             >
 
@@ -1871,6 +2573,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 type="text"
                                 id="customerCity"
                                 value="Suzano"
+                                autocomplete="address-level2"
                                 required
                             >
 
@@ -1888,6 +2591,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                 type="text"
                                 id="customerState"
                                 value="SP"
+                                maxlength="2"
+                                autocomplete="address-level1"
                                 required
                             >
 
@@ -1978,7 +2683,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
 
 
-                    <div class="cash-change">
+                    <div
+                        class="cash-change"
+                        style="display: none;"
+                    >
 
                         <label for="changeFor">
                             Troco para
@@ -2045,14 +2753,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <div class="review-total">
 
-                        <span>
-                            Total
-                        </span>
+                        <div class="review-subtotal">
+
+                            <span>
+                                Subtotal
+                            </span>
 
 
-                        <strong>
-                            R$ 0,00
-                        </strong>
+                            <strong>
+                                R$ 0,00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="review-delivery">
+
+                            <span>
+                                Taxa de entrega
+                            </span>
+
+
+                            <strong>
+                                R$ 0,00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="review-total-final">
+
+                            <span>
+                                Total
+                            </span>
+
+
+                            <strong>
+                                R$ 0,00
+                            </strong>
+
+                        </div>
 
                     </div>
 
@@ -2141,6 +2881,66 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+        const cashChange =
+            checkoutOverlay.querySelector(
+                ".cash-change"
+            );
+
+
+        const changeForInput =
+            checkoutOverlay.querySelector(
+                "#changeFor"
+            );
+
+
+        const paymentInputs =
+            checkoutOverlay.querySelectorAll(
+                'input[name="payment"]'
+            );
+
+
+        const cepInput =
+            checkoutOverlay.querySelector(
+                "#customerCep"
+            );
+
+
+        const streetInput =
+            checkoutOverlay.querySelector(
+                "#customerStreet"
+            );
+
+
+        const neighborhoodInput =
+            checkoutOverlay.querySelector(
+                "#customerNeighborhood"
+            );
+
+
+        const cityInput =
+            checkoutOverlay.querySelector(
+                "#customerCity"
+            );
+
+
+        const stateInput =
+            checkoutOverlay.querySelector(
+                "#customerState"
+            );
+
+
+        const numberInput =
+            checkoutOverlay.querySelector(
+                "#customerNumber"
+            );
+
+
+        const cepStatus =
+            checkoutOverlay.querySelector(
+                "#cepStatus"
+            );
+
+
         /* =========================================
            FECHAR CHECKOUT
         ========================================= */
@@ -2148,6 +2948,268 @@ document.addEventListener("DOMContentLoaded", () => {
         closeCheckoutButton.addEventListener(
             "click",
             closeCheckout
+        );
+
+
+        /* =========================================
+           TROCO SOMENTE PARA DINHEIRO
+        ========================================= */
+
+        function updateCashChangeVisibility() {
+
+            const selectedPayment =
+                checkoutOverlay.querySelector(
+                    'input[name="payment"]:checked'
+                );
+
+
+            if (!cashChange) {
+
+                return;
+
+            }
+
+
+            if (
+                selectedPayment &&
+                selectedPayment.value ===
+                "Dinheiro"
+            ) {
+
+                cashChange.style.display =
+                    "flex";
+
+            } else {
+
+                cashChange.style.display =
+                    "none";
+
+
+                if (changeForInput) {
+
+                    changeForInput.value =
+                        "";
+
+                }
+
+
+                customerData.changeFor =
+                    "";
+
+                saveCustomerData();
+
+            }
+
+        }
+
+
+        paymentInputs.forEach(
+            (input) => {
+
+                input.addEventListener(
+                    "change",
+                    updateCashChangeVisibility
+                );
+
+            }
+        );
+
+
+        updateCashChangeVisibility();
+
+
+        /* =========================================
+           CEP - BUSCA AUTOMÁTICA
+        ========================================= */
+
+        cepInput.addEventListener(
+            "input",
+            async () => {
+
+                cepInput.value =
+                    formatCep(
+                        cepInput.value
+                    );
+
+
+                setAddressFieldsReadonly(
+                    streetInput,
+                    neighborhoodInput,
+                    cityInput,
+                    stateInput,
+                    false
+                );
+
+
+                cepStatus.textContent =
+                    "";
+
+                cepStatus.className =
+                    "cep-status";
+
+
+                deliveryAvailable =
+                    false;
+
+                deliveryFee =
+                    0;
+
+                deliveryDistanceKm =
+                    null;
+
+
+                customerData.deliveryAvailable =
+                    false;
+
+                customerData.deliveryFee =
+                    0;
+
+                customerData.deliveryDistanceKm =
+                    null;
+
+
+                calculatedDeliveryAddress =
+                    "";
+
+
+                const cep =
+                    cepInput.value.replace(
+                        /\D/g,
+                        ""
+                    );
+
+
+                if (
+                    cep.length ===
+                    8
+                ) {
+
+                    await searchCep(
+                        cepInput,
+                        streetInput,
+                        neighborhoodInput,
+                        cityInput,
+                        stateInput,
+                        cepStatus
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =========================================
+           NÚMERO - CALCULAR ENTREGA AUTOMATICAMENTE
+        ========================================= */
+
+        let deliveryCalculationTimer =
+            null;
+
+
+        numberInput.addEventListener(
+            "input",
+            () => {
+
+                customerData.number =
+                    numberInput.value.trim();
+
+
+                deliveryAvailable =
+                    false;
+
+                deliveryFee =
+                    0;
+
+                deliveryDistanceKm =
+                    null;
+
+
+                customerData.deliveryAvailable =
+                    false;
+
+                customerData.deliveryFee =
+                    0;
+
+                customerData.deliveryDistanceKm =
+                    null;
+
+
+                calculatedDeliveryAddress =
+                    "";
+
+
+                saveCustomerData();
+
+
+                clearTimeout(
+                    deliveryCalculationTimer
+                );
+
+
+                const number =
+                    numberInput.value.trim();
+
+
+                if (
+                    !number ||
+                    !customerData.street ||
+                    !customerData.neighborhood ||
+                    !customerData.city ||
+                    !customerData.state ||
+                    !customerData.cep
+                ) {
+
+                    return;
+
+                }
+
+
+                deliveryCalculationTimer =
+                    setTimeout(
+                        async () => {
+
+                            const addressKey =
+                                [
+                                    customerData.street,
+                                    number,
+                                    customerData.neighborhood,
+                                    customerData.city,
+                                    customerData.state,
+                                    customerData.cep
+                                ]
+                                    .join("|");
+
+
+                            try {
+
+                                const result =
+                                    await calculateDeliveryFee();
+
+
+                                if (
+                                    result
+                                ) {
+
+                                    calculatedDeliveryAddress =
+                                        addressKey;
+
+                                }
+
+                            } catch (error) {
+
+                                console.error(
+                                    "Erro no cálculo automático da entrega:",
+                                    error
+                                );
+
+                            }
+
+                        },
+                        300
+                    );
+
+            }
         );
 
 
@@ -2171,7 +3233,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     step.classList.toggle(
                         "active",
                         currentStep ===
-                            stepNumber
+                        stepNumber
                     );
 
                 }
@@ -2191,14 +3253,96 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           SALVAR CLIENTE
+           FORMULÁRIO CLIENTE
         ========================================= */
 
         customerForm.addEventListener(
             "submit",
-            (event) => {
+            async (event) => {
 
                 event.preventDefault();
+
+
+                const submitButton =
+                    customerForm.querySelector(
+                        ".checkout-next"
+                    );
+
+
+                const cep =
+                    cepInput.value
+                        .replace(
+                            /\D/g,
+                            ""
+                        );
+
+
+                if (
+                    !/^[0-9]{8}$/.test(
+                        cep
+                    )
+                ) {
+
+                    window.alert(
+                        "Informe um CEP válido."
+                    );
+
+
+                    cepInput.focus();
+
+
+                    return;
+
+                }
+
+
+                if (
+                    !streetInput.value.trim() ||
+                    !neighborhoodInput.value.trim() ||
+                    !cityInput.value.trim() ||
+                    !stateInput.value.trim()
+                ) {
+
+                    window.alert(
+                        "Digite um CEP válido para preencher o endereço."
+                    );
+
+
+                    cepInput.focus();
+
+
+                    return;
+
+                }
+
+
+                if (
+                    !numberInput.value.trim()
+                ) {
+
+                    window.alert(
+                        "Informe o número do endereço."
+                    );
+
+
+                    numberInput.focus();
+
+
+                    return;
+
+                }
+
+
+                if (submitButton) {
+
+                    submitButton.disabled =
+                        true;
+
+
+                    submitButton.textContent =
+                        "Verificando entrega...";
+
+                }
 
 
                 customerData = {
@@ -2220,27 +3364,15 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim(),
 
                     cep:
-                        checkoutOverlay
-                            .querySelector(
-                                "#customerCep"
-                            )
-                            .value
+                        cepInput.value
                             .trim(),
 
                     street:
-                        checkoutOverlay
-                            .querySelector(
-                                "#customerStreet"
-                            )
-                            .value
+                        streetInput.value
                             .trim(),
 
                     number:
-                        checkoutOverlay
-                            .querySelector(
-                                "#customerNumber"
-                            )
-                            .value
+                        numberInput.value
                             .trim(),
 
                     complement:
@@ -2252,28 +3384,18 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim(),
 
                     neighborhood:
-                        checkoutOverlay
-                            .querySelector(
-                                "#customerNeighborhood"
-                            )
+                        neighborhoodInput
                             .value
                             .trim(),
 
                     city:
-                        checkoutOverlay
-                            .querySelector(
-                                "#customerCity"
-                            )
-                            .value
+                        cityInput.value
                             .trim(),
 
                     state:
-                        checkoutOverlay
-                            .querySelector(
-                                "#customerState"
-                            )
-                            .value
-                            .trim(),
+                        stateInput.value
+                            .trim()
+                            .toUpperCase(),
 
                     note:
                         checkoutOverlay
@@ -2284,17 +3406,98 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim(),
 
                     payment:
-                        customerData.payment ||
                         "Pix",
 
                     changeFor:
-                        customerData.changeFor ||
-                        ""
+                        "",
+
+                    deliveryAvailable:
+                        deliveryAvailable,
+
+                    deliveryFee:
+                        deliveryFee,
+
+                    deliveryDistanceKm:
+                        deliveryDistanceKm
 
                 };
 
 
                 saveCustomerData();
+
+
+                const addressKey =
+                    [
+                        customerData.street,
+                        customerData.number,
+                        customerData.neighborhood,
+                        customerData.city,
+                        customerData.state,
+                        customerData.cep
+                    ]
+                        .join("|");
+
+
+                if (
+                    calculatedDeliveryAddress !==
+                    addressKey
+                ) {
+
+                    const deliveryValid =
+                        await calculateDeliveryFee();
+
+
+                    if (!deliveryValid) {
+
+                        if (submitButton) {
+
+                            submitButton.disabled =
+                                false;
+
+
+                            submitButton.textContent =
+                                "Continuar";
+
+                        }
+
+
+                        return;
+
+                    }
+
+
+                    calculatedDeliveryAddress =
+                        addressKey;
+
+                }
+
+
+                if (submitButton) {
+
+                    submitButton.disabled =
+                        false;
+
+
+                    submitButton.textContent =
+                        "Continuar";
+
+                }
+
+
+                if (
+                    deliveryAvailable !==
+                    true
+                ) {
+
+                    window.alert(
+                        "No momento, não realizamos entregas neste endereço."
+                    );
+
+
+                    return;
+
+                }
+
 
                 showCheckoutStep(
                     2
@@ -2340,13 +3543,24 @@ document.addEventListener("DOMContentLoaded", () => {
                         : "Pix";
 
 
-                customerData.changeFor =
-                    checkoutOverlay
-                        .querySelector(
-                            "#changeFor"
-                        )
-                        .value
-                        .trim();
+                if (
+                    customerData.payment ===
+                    "Dinheiro"
+                ) {
+
+                    customerData.changeFor =
+                        changeForInput
+                            ? changeForInput
+                                .value
+                                .trim()
+                            : "";
+
+                } else {
+
+                    customerData.changeFor =
+                        "";
+
+                }
 
 
                 saveCustomerData();
@@ -2384,10 +3598,114 @@ document.addEventListener("DOMContentLoaded", () => {
             "click",
             () => {
 
+                if (
+                    deliveryAvailable !==
+                    true
+                ) {
+
+                    window.alert(
+                        "No momento, não realizamos entregas neste endereço."
+                    );
+
+
+                    showCheckoutStep(
+                        1
+                    );
+
+
+                    return;
+
+                }
+
+
                 sendOrderToWhatsApp();
 
             }
         );
+
+
+        /* =========================================
+           CARREGAR DADOS SALVOS
+        ========================================= */
+
+        loadCustomerData();
+
+    }
+
+
+    /* =========================================
+       PREPARAR NOVO PEDIDO
+    ========================================= */
+
+    function prepareNewOrder() {
+
+        customerData = {
+
+            name:
+                customerData.name || "",
+
+            phone:
+                customerData.phone || "",
+
+            cep:
+                "",
+
+            street:
+                "",
+
+            number:
+                "",
+
+            complement:
+                "",
+
+            neighborhood:
+                "",
+
+            city:
+                "Suzano",
+
+            state:
+                "SP",
+
+            note:
+                "",
+
+            payment:
+                "Pix",
+
+            changeFor:
+                "",
+
+            deliveryAvailable:
+                false,
+
+            deliveryFee:
+                0,
+
+            deliveryDistanceKm:
+                null
+
+        };
+
+
+        deliveryAvailable =
+            false;
+
+
+        deliveryFee =
+            0;
+
+
+        deliveryDistanceKm =
+            null;
+
+
+        calculatedDeliveryAddress =
+            "";
+
+
+        saveCustomerData();
 
     }
 
@@ -2398,7 +3716,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openCheckout() {
 
-        if (cart.length === 0) {
+        if (
+            cart.length ===
+            0
+        ) {
 
             window.alert(
                 "Adicione pelo menos um produto ao carrinho."
@@ -2410,7 +3731,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        prepareNewOrder();
+
+
         createCheckout();
+
 
         closeCart();
 
@@ -2426,6 +3751,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         loadCustomerData();
+
+
+        const checkoutSteps =
+            checkoutOverlay.querySelectorAll(
+                ".checkout-step"
+            );
+
+
+        checkoutSteps.forEach(
+            (step) => {
+
+                step.classList.toggle(
+                    "active",
+                    step.dataset.step ===
+                    "1"
+                );
+
+            }
+        );
+
+
+        const pixRadio =
+            checkoutOverlay.querySelector(
+                'input[name="payment"][value="Pix"]'
+            );
+
+
+        if (pixRadio) {
+
+            pixRadio.checked =
+                true;
+
+        }
+
+
+        const cashChange =
+            checkoutOverlay.querySelector(
+                ".cash-change"
+            );
+
+
+        if (cashChange) {
+
+            cashChange.style.display =
+                "none";
+
+        }
+
+
+        const cepStatus =
+            checkoutOverlay.querySelector(
+                "#cepStatus"
+            );
+
+
+        if (cepStatus) {
+
+            cepStatus.textContent =
+                "";
+
+            cepStatus.className =
+                "cep-status";
+
+        }
 
     }
 
@@ -2558,8 +3947,101 @@ document.addEventListener("DOMContentLoaded", () => {
         if (changeFor) {
 
             changeFor.value =
-                customerData.changeFor ||
-                "";
+                customerData.payment ===
+                    "Dinheiro"
+                    ? (
+                        customerData.changeFor ||
+                        ""
+                    )
+                    : "";
+
+        }
+
+
+        const cashChange =
+            checkoutOverlay.querySelector(
+                ".cash-change"
+            );
+
+
+        if (cashChange) {
+
+            cashChange.style.display =
+                customerData.payment ===
+                    "Dinheiro"
+                    ? "flex"
+                    : "none";
+
+        }
+
+
+        const streetInput =
+            checkoutOverlay.querySelector(
+                "#customerStreet"
+            );
+
+
+        const neighborhoodInput =
+            checkoutOverlay.querySelector(
+                "#customerNeighborhood"
+            );
+
+
+        const cityInput =
+            checkoutOverlay.querySelector(
+                "#customerCity"
+            );
+
+
+        const stateInput =
+            checkoutOverlay.querySelector(
+                "#customerState"
+            );
+
+
+        const cepStatus =
+            checkoutOverlay.querySelector(
+                "#cepStatus"
+            );
+
+
+        if (
+            customerData.cep &&
+            customerData.street &&
+            customerData.neighborhood &&
+            customerData.city &&
+            customerData.state
+        ) {
+
+            setAddressFieldsReadonly(
+                streetInput,
+                neighborhoodInput,
+                cityInput,
+                stateInput,
+                true
+            );
+
+
+            if (cepStatus) {
+
+                cepStatus.textContent =
+                    "Endereço salvo.";
+
+
+                cepStatus.className =
+                    "cep-status success";
+
+            }
+
+        } else {
+
+            setAddressFieldsReadonly(
+                streetInput,
+                neighborhoodInput,
+                cityInput,
+                stateInput,
+                false
+            );
 
         }
 
@@ -2597,9 +4079,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        const reviewTotal =
+        const reviewTotalContainer =
             checkoutOverlay.querySelector(
-                ".review-total strong"
+                ".review-total"
             );
 
 
@@ -2607,7 +4089,7 @@ document.addEventListener("DOMContentLoaded", () => {
             !reviewItems ||
             !reviewAddress ||
             !reviewPayment ||
-            !reviewTotal
+            !reviewTotalContainer
         ) {
 
             return;
@@ -2690,12 +4172,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     customerData.number
                 )}
 
-                ${
-                    customerData.complement
-                        ? ` - ${escapeHtml(
-                            customerData.complement
-                        )}`
-                        : ""
+                ${customerData.complement
+                    ? ` - ${escapeHtml(
+                        customerData.complement
+                    )}`
+                    : ""
                 }
 
             </p>
@@ -2752,11 +4233,10 @@ document.addEventListener("DOMContentLoaded", () => {
             </p>
 
 
-            ${
-                customerData.payment ===
-                    "Dinheiro" &&
+            ${customerData.payment ===
+                "Dinheiro" &&
                 customerData.changeFor
-                    ? `
+                ? `
 
                         <p>
 
@@ -2769,32 +4249,110 @@ document.addEventListener("DOMContentLoaded", () => {
                         </p>
 
                     `
-                    : ""
+                : ""
             }
 
         `;
 
 
-        reviewTotal.textContent =
-            formatPrice(
-                calculateSubtotal()
-            );
+        reviewTotalContainer.innerHTML = `
+
+            <div class="review-subtotal">
+
+                <span>
+                    Subtotal
+                </span>
+
+
+                <strong>
+                    ${formatPrice(
+                        calculateSubtotal()
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="review-delivery">
+
+                <span>
+                    Taxa de entrega
+                </span>
+
+
+                <strong>
+                    ${formatPrice(
+                        deliveryFee
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="review-total-final">
+
+                <span>
+                    Total
+                </span>
+
+
+                <strong>
+                    ${formatPrice(
+                        calculateTotal()
+                    )}
+                </strong>
+
+            </div>
+
+        `;
 
     }
 
 
     /* =========================================
        ENVIAR PEDIDO PARA WHATSAPP
+       E LIMPAR PEDIDO APÓS CONFIRMAÇÃO
     ========================================= */
 
     function sendOrderToWhatsApp() {
 
+        if (!storeWhatsapp) {
+
+            window.alert(
+                "O WhatsApp da pizzaria não está configurado no momento."
+            );
+
+
+            return;
+
+        }
+
+
         const whatsappNumber =
-            "5511999999999";
+            storeWhatsapp.replace(
+                /\D/g,
+                ""
+            );
+
+
+        if (!whatsappNumber) {
+
+            window.alert(
+                "O WhatsApp da pizzaria não está configurado corretamente."
+            );
+
+
+            return;
+
+        }
 
 
         const subtotal =
             calculateSubtotal();
+
+
+        const total =
+            calculateTotal();
 
 
         let message =
@@ -2821,6 +4379,18 @@ document.addEventListener("DOMContentLoaded", () => {
         message +=
             `\n*Subtotal: ${formatPrice(
                 subtotal
+            )}*\n`;
+
+
+        message +=
+            `*Taxa de entrega: ${formatPrice(
+                deliveryFee
+            )}*\n`;
+
+
+        message +=
+            `*Total: ${formatPrice(
+                total
             )}*\n`;
 
 
@@ -2882,7 +4452,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (
             customerData.payment ===
-                "Dinheiro" &&
+            "Dinheiro" &&
             customerData.changeFor
         ) {
 
@@ -2898,10 +4468,107 @@ document.addEventListener("DOMContentLoaded", () => {
             )}`;
 
 
+        /* =========================================
+           ABRIR WHATSAPP
+        ========================================= */
+
         window.open(
             whatsappUrl,
             "_blank"
         );
+
+
+        /* =========================================
+           LIMPAR PEDIDO
+        ========================================= */
+
+        cart = [];
+
+
+        saveCart();
+
+
+        deliveryAvailable =
+            false;
+
+
+        deliveryFee =
+            0;
+
+
+        deliveryDistanceKm =
+            null;
+
+
+        customerData = {
+
+            name:
+                customerData.name || "",
+
+            phone:
+                customerData.phone || "",
+
+            cep:
+                "",
+
+            street:
+                "",
+
+            number:
+                "",
+
+            complement:
+                "",
+
+            neighborhood:
+                "",
+
+            city:
+                "Suzano",
+
+            state:
+                "SP",
+
+            note:
+                "",
+
+            payment:
+                "Pix",
+
+            changeFor:
+                "",
+
+            deliveryAvailable:
+                false,
+
+            deliveryFee:
+                0,
+
+            deliveryDistanceKm:
+                null
+
+        };
+
+
+        calculatedDeliveryAddress =
+            "";
+
+
+        saveCustomerData();
+
+
+        /* =========================================
+           ATUALIZAR CARRINHO
+        ========================================= */
+
+        renderCart();
+
+
+        /* =========================================
+           FECHAR CHECKOUT
+        ========================================= */
+
+        closeCheckout();
 
     }
 
@@ -2910,7 +4577,9 @@ document.addEventListener("DOMContentLoaded", () => {
        ESCAPAR HTML
     ========================================= */
 
-    function escapeHtml(value) {
+    function escapeHtml(
+        value
+    ) {
 
         return String(value)
             .replace(
@@ -2979,6 +4648,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================= */
 
     renderCart();
+
+    loadStoreWhatsapp();
 
     loadCategoriesFromSupabase();
 
