@@ -7,9 +7,11 @@
    WHATSAPP DA LOJA VIA SUPABASE
    CEP + PREENCHIMENTO AUTOMÁTICO
    TROCO SOMENTE PARA DINHEIRO
+   PERSONALIZAÇÃO DE PRODUTOS
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+
 
     /* =========================================
        ELEMENTOS DO CARRINHO
@@ -85,13 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
             customerData.deliveryDistanceKm
         ) || null;
 
+
     let deliveryFee =
         Number(
             customerData.deliveryFee
         ) || 0;
 
+
     let deliveryAvailable =
         customerData.deliveryAvailable === true;
+
 
     let calculatedDeliveryAddress =
         "";
@@ -1123,7 +1128,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
 
-                        addProductToCart(
+                        openProductCustomization(
                             product
                         );
 
@@ -1137,7 +1142,946 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
+       PERSONALIZAÇÃO DO PRODUTO
+    ========================================= */
+
+    async function openProductCustomization(
+        product,
+        existingItem = null
+    ) {
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.className =
+            "customization-overlay";
+
+
+        overlay.innerHTML = `
+            <div class="customization-modal">
+
+                <button
+                    type="button"
+                    class="close-customization"
+                    aria-label="Fechar personalização"
+                >
+                    ×
+                </button>
+
+                <h2>
+                    ${product.name}
+                </h2>
+
+                <p>
+                    ${product.description || ""}
+                </p>
+
+            </div>
+        `;
+
+
+        document.body.appendChild(
+            overlay
+        );
+
+
+        const modal =
+            overlay.querySelector(
+                ".customization-modal"
+            );
+
+
+        const closeButton =
+            overlay.querySelector(
+                ".close-customization"
+            );
+
+
+        /* =========================================
+           FECHAR PERSONALIZAÇÃO
+        ========================================= */
+
+        function closeCustomization() {
+
+            document.removeEventListener(
+                "keydown",
+                handleEscape
+            );
+
+
+            overlay.remove();
+
+        }
+
+
+        function handleEscape(event) {
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
+
+                closeCustomization();
+
+            }
+
+        }
+
+
+        closeButton.addEventListener(
+            "click",
+            closeCustomization
+        );
+
+
+        overlay.addEventListener(
+            "click",
+            (event) => {
+
+                if (
+                    event.target ===
+                    overlay
+                ) {
+
+                    closeCustomization();
+
+                }
+
+            }
+        );
+
+
+        document.addEventListener(
+            "keydown",
+            handleEscape
+        );
+
+
+        /* =========================================
+           VALORES INICIAIS
+        ========================================= */
+
+        const basePrice =
+            Number(product.price);
+
+
+        const selectedAddons =
+            existingItem?.addons
+                ? existingItem.addons.map(
+                    (addon) => ({
+                        id:
+                            addon.id,
+
+                        name:
+                            addon.name,
+
+                        price:
+                            Number(
+                                addon.price
+                            )
+                    })
+                )
+                : [];
+
+
+        const selectedIngredients =
+            existingItem?.removedIngredients
+                ? existingItem.removedIngredients.map(
+                    (ingredient) => ({
+                        id:
+                            ingredient.id,
+
+                        name:
+                            ingredient.name
+                    })
+                )
+                : [];
+
+
+        let quantity =
+            Number(
+                existingItem?.quantity
+            ) || 1;
+
+
+        /* =========================================
+           ADICIONAIS
+        ========================================= */
+
+        modal.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="customization-section">
+
+                    <h3>
+                        Adicionais
+                    </h3>
+
+                    <div class="addons-list"></div>
+
+                </div>
+            `
+        );
+
+
+        /* =========================================
+           INGREDIENTES
+        ========================================= */
+
+        modal.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="customization-section">
+
+                    <h3>
+                        Remover ingredientes
+                    </h3>
+
+                    <div class="ingredients-list"></div>
+
+                </div>
+            `
+        );
+
+
+        /* =========================================
+           QUANTIDADE
+        ========================================= */
+
+        modal.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="customization-section">
+
+                    <h3>
+                        Quantidade
+                    </h3>
+
+                    <div class="customization-quantity">
+
+                        <button
+                            type="button"
+                            class="quantity-decrease"
+                        >
+                            −
+                        </button>
+
+                        <span class="quantity-value">
+                            ${quantity}
+                        </span>
+
+                        <button
+                            type="button"
+                            class="quantity-increase"
+                        >
+                            +
+                        </button>
+
+                    </div>
+
+                </div>
+            `
+        );
+
+
+        /* =========================================
+           TOTAL
+        ========================================= */
+
+        modal.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="customization-total">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <strong>
+                        ${formatPrice(
+                            basePrice +
+                            selectedAddons.reduce(
+                                (
+                                    total,
+                                    addon
+                                ) =>
+                                    total +
+                                    Number(
+                                        addon.price
+                                    ),
+                                0
+                            )
+                        )}
+                    </strong>
+
+                </div>
+            `
+        );
+
+
+        /* =========================================
+           BOTÃO CONFIRMAR
+        ========================================= */
+
+        modal.insertAdjacentHTML(
+            "beforeend",
+            `
+                <button
+                    type="button"
+                    class="customization-confirm"
+                >
+                    ${
+                        existingItem
+                            ? "Salvar alterações"
+                            : "Adicionar ao carrinho"
+                    }
+                </button>
+            `
+        );
+
+
+        /* =========================================
+           ELEMENTOS
+        ========================================= */
+
+        const addonsList =
+            modal.querySelector(
+                ".addons-list"
+            );
+
+
+        const ingredientsList =
+            modal.querySelector(
+                ".ingredients-list"
+            );
+
+
+        const quantityValue =
+            modal.querySelector(
+                ".quantity-value"
+            );
+
+
+        const decreaseButton =
+            modal.querySelector(
+                ".quantity-decrease"
+            );
+
+
+        const increaseButton =
+            modal.querySelector(
+                ".quantity-increase"
+            );
+
+
+        const totalElement =
+            modal.querySelector(
+                ".customization-total strong"
+            );
+
+
+        const confirmButton =
+            modal.querySelector(
+                ".customization-confirm"
+            );
+
+
+        /* =========================================
+           CALCULAR TOTAL DOS ADICIONAIS
+        ========================================= */
+
+        function calculateAddonsTotal() {
+
+            return selectedAddons.reduce(
+                (
+                    total,
+                    addon
+                ) => {
+
+                    return (
+                        total +
+                        Number(
+                            addon.price
+                        )
+                    );
+
+                },
+                0
+            );
+
+        }
+
+
+        /* =========================================
+           ATUALIZAR TOTAL
+        ========================================= */
+
+        function updateCustomizationTotal() {
+
+            const addonsTotal =
+                calculateAddonsTotal();
+
+
+            const itemPrice =
+                basePrice +
+                addonsTotal;
+
+
+            const total =
+                itemPrice *
+                quantity;
+
+
+            totalElement.textContent =
+                formatPrice(
+                    total
+                );
+
+        }
+
+
+        /* =========================================
+           CARREGAR ADICIONAIS
+        ========================================= */
+
+        const {
+            data: addons,
+            error: addonsError
+        } =
+            await supabaseClient
+                .from(
+                    "product_addons"
+                )
+                .select(
+                    "id, name, price"
+                )
+                .eq(
+                    "product_id",
+                    product.id
+                )
+                .eq(
+                    "active",
+                    true
+                );
+
+
+        if (addonsError) {
+
+            console.error(
+                "Erro ao carregar adicionais:",
+                addonsError
+            );
+
+        }
+
+
+        /* =========================================
+           MOSTRAR ADICIONAIS
+        ========================================= */
+
+        if (
+            !addons ||
+            addons.length === 0
+        ) {
+
+            addonsList.innerHTML = `
+                <p>
+                    Nenhum adicional disponível.
+                </p>
+            `;
+
+        }
+
+
+        (addons || []).forEach(
+            (addon) => {
+
+                const item =
+                    document.createElement(
+                        "label"
+                    );
+
+
+                item.className =
+                    "addon-item";
+
+
+                item.innerHTML = `
+                    <input
+                        type="checkbox"
+                        value="${addon.id}"
+                    >
+
+                    <span>
+                        ${addon.name}
+                    </span>
+
+                    <strong>
+                        + ${formatPrice(
+                            addon.price
+                        )}
+                    </strong>
+                `;
+
+
+                addonsList.appendChild(
+                    item
+                );
+
+
+                const checkbox =
+                    item.querySelector(
+                        'input[type="checkbox"]'
+                    );
+
+
+                /* =====================================
+                   RECUPERAR ADICIONAL AO EDITAR
+                ===================================== */
+
+                if (
+                    selectedAddons.some(
+                        (selected) =>
+                            selected.id ===
+                            addon.id
+                    )
+                ) {
+
+                    checkbox.checked =
+                        true;
+
+                }
+
+
+                checkbox.addEventListener(
+                    "change",
+                    () => {
+
+                        if (
+                            checkbox.checked
+                        ) {
+
+                            const alreadySelected =
+                                selectedAddons.some(
+                                    (selected) =>
+                                        selected.id ===
+                                        addon.id
+                                );
+
+
+                            if (
+                                !alreadySelected
+                            ) {
+
+                                selectedAddons.push(
+                                    addon
+                                );
+
+                            }
+
+                        } else {
+
+                            const index =
+                                selectedAddons.findIndex(
+                                    (item) =>
+                                        item.id ===
+                                        addon.id
+                                );
+
+
+                            if (
+                                index !==
+                                -1
+                            ) {
+
+                                selectedAddons.splice(
+                                    index,
+                                    1
+                                );
+
+                            }
+
+                        }
+
+
+                        updateCustomizationTotal();
+
+
+                        console.log(
+                            "Adicionais selecionados:",
+                            selectedAddons
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =========================================
+           CARREGAR INGREDIENTES
+        ========================================= */
+
+        const {
+            data: ingredients,
+            error: ingredientsError
+        } =
+            await supabaseClient
+                .from(
+                    "product_removable_ingredients"
+                )
+                .select(
+                    "id, name"
+                )
+                .eq(
+                    "product_id",
+                    product.id
+                )
+                .eq(
+                    "active",
+                    true
+                );
+
+
+        if (ingredientsError) {
+
+            console.error(
+                "Erro ao carregar ingredientes:",
+                ingredientsError
+            );
+
+        }
+
+
+        /* =========================================
+           MOSTRAR INGREDIENTES
+        ========================================= */
+
+        if (
+            !ingredients ||
+            ingredients.length === 0
+        ) {
+
+            ingredientsList.innerHTML = `
+                <p>
+                    Nenhum ingrediente removível disponível.
+                </p>
+            `;
+
+        }
+
+
+        (ingredients || []).forEach(
+            (ingredient) => {
+
+                const item =
+                    document.createElement(
+                        "label"
+                    );
+
+
+                item.className =
+                    "ingredient-item";
+
+
+                item.innerHTML = `
+                    <input
+                        type="checkbox"
+                        value="${ingredient.id}"
+                    >
+
+                    <span>
+                        ${ingredient.name}
+                    </span>
+                `;
+
+
+                ingredientsList.appendChild(
+                    item
+                );
+
+
+                const checkbox =
+                    item.querySelector(
+                        'input[type="checkbox"]'
+                    );
+
+
+                /* =====================================
+                   RECUPERAR INGREDIENTE AO EDITAR
+                ===================================== */
+
+                if (
+                    selectedIngredients.some(
+                        (selected) =>
+                            selected.id ===
+                            ingredient.id
+                    )
+                ) {
+
+                    checkbox.checked =
+                        true;
+
+                }
+
+
+                checkbox.addEventListener(
+                    "change",
+                    () => {
+
+                        if (
+                            checkbox.checked
+                        ) {
+
+                            const alreadySelected =
+                                selectedIngredients.some(
+                                    (selected) =>
+                                        selected.id ===
+                                        ingredient.id
+                                );
+
+
+                            if (
+                                !alreadySelected
+                            ) {
+
+                                selectedIngredients.push(
+                                    ingredient
+                                );
+
+                            }
+
+                        } else {
+
+                            const index =
+                                selectedIngredients.findIndex(
+                                    (item) =>
+                                        item.id ===
+                                        ingredient.id
+                                );
+
+
+                            if (
+                                index !==
+                                -1
+                            ) {
+
+                                selectedIngredients.splice(
+                                    index,
+                                    1
+                                );
+
+                            }
+
+                        }
+
+
+                        console.log(
+                            "Ingredientes removidos:",
+                            selectedIngredients
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =========================================
+           DIMINUIR QUANTIDADE
+        ========================================= */
+
+        decreaseButton.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    quantity > 1
+                ) {
+
+                    quantity -=
+                        1;
+
+
+                    quantityValue.textContent =
+                        quantity;
+
+
+                    updateCustomizationTotal();
+
+                }
+
+            }
+        );
+
+
+        /* =========================================
+           AUMENTAR QUANTIDADE
+        ========================================= */
+
+        increaseButton.addEventListener(
+            "click",
+            () => {
+
+                quantity +=
+                    1;
+
+
+                quantityValue.textContent =
+                    quantity;
+
+
+                updateCustomizationTotal();
+
+            }
+        );
+
+
+        /* =========================================
+           ADICIONAR / EDITAR ITEM
+        ========================================= */
+
+        confirmButton.addEventListener(
+            "click",
+            () => {
+
+                const addonsTotal =
+                    calculateAddonsTotal();
+
+
+                const itemPrice =
+                    basePrice +
+                    addonsTotal;
+
+
+                const customizedItem = {
+
+                    id:
+                        existingItem
+                            ? existingItem.id
+                            : `${product.slug}-${Date.now()}`,
+
+                    productId:
+                        product.id,
+
+                    productSlug:
+                        product.slug,
+
+                    name:
+                        product.name,
+
+                    description:
+                        product.description ||
+                        "",
+
+                    price:
+                        itemPrice,
+
+                    quantity:
+                        quantity,
+
+                    addons:
+                        selectedAddons.map(
+                            (addon) => ({
+                                id:
+                                    addon.id,
+
+                                name:
+                                    addon.name,
+
+                                price:
+                                    Number(
+                                        addon.price
+                                    )
+                            })
+                        ),
+
+                    removedIngredients:
+                        selectedIngredients.map(
+                            (ingredient) => ({
+                                id:
+                                    ingredient.id,
+
+                                name:
+                                    ingredient.name
+                            })
+                        ),
+
+                    addonsTotal:
+                        addonsTotal
+
+                };
+
+
+                /* =====================================
+                   EDITAR ITEM EXISTENTE
+                ===================================== */
+
+                if (
+                    existingItem
+                ) {
+
+                    const index =
+                        cart.findIndex(
+                            (item) =>
+                                item.id ===
+                                existingItem.id
+                        );
+
+
+                    if (
+                        index !==
+                        -1
+                    ) {
+
+                        cart[index] =
+                            customizedItem;
+
+                    }
+
+                }
+
+
+                /* =====================================
+                   NOVO ITEM
+                ===================================== */
+
+                else {
+
+                    cart.push(
+                        customizedItem
+                    );
+
+                }
+
+
+                saveCart();
+
+                renderCart();
+
+                closeCustomization();
+
+            }
+        );
+
+
+        /* =========================================
+           TOTAL INICIAL
+        ========================================= */
+
+        updateCustomizationTotal();
+
+    }
+
+
+    /* =========================================
        ADICIONAR PRODUTO
+       FUNÇÃO MANTIDA PARA COMPATIBILIDADE
     ========================================= */
 
     function addProductToCart(
@@ -1152,7 +2096,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (existingProduct) {
+        if (
+            existingProduct
+        ) {
 
             existingProduct.quantity +=
                 1;
@@ -1162,6 +2108,12 @@ document.addEventListener("DOMContentLoaded", () => {
             cart.push({
 
                 id:
+                    product.slug,
+
+                productId:
+                    product.id,
+
+                productSlug:
                     product.slug,
 
                 name:
@@ -1177,7 +2129,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     ),
 
                 quantity:
-                    1
+                    1,
+
+                addons:
+                    [],
+
+                removedIngredients:
+                    [],
+
+                addonsTotal:
+                    0
 
             });
 
@@ -1205,7 +2166,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 product
             ) => {
 
-                return total +
+                return (
+                    total +
                     (
                         Number(
                             product.price
@@ -1213,7 +2175,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         Number(
                             product.quantity
                         )
-                    );
+                    )
+                );
 
             },
             0
@@ -1253,17 +2216,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     product
                 ) => {
 
-                    return total +
+                    return (
+                        total +
                         Number(
                             product.quantity
-                        );
+                        )
+                    );
 
                 },
                 0
             );
 
 
-        if (cartCountElement) {
+        if (
+            cartCountElement
+        ) {
 
             cartCountElement.textContent =
                 totalItems;
@@ -1279,7 +2246,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateCartSubtotal() {
 
-        if (!cartSubtotalElement) {
+        if (
+            !cartSubtotalElement
+        ) {
 
             return;
 
@@ -1384,7 +2353,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderCart() {
 
-        if (!cartItemsContainer) {
+        if (
+            !cartItemsContainer
+        ) {
 
             return;
 
@@ -1441,6 +2412,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     "cart-item";
 
 
+                /* =====================================
+                   INFORMAÇÕES
+                ===================================== */
+
                 const productInfo =
                     document.createElement(
                         "div"
@@ -1461,6 +2436,97 @@ document.addEventListener("DOMContentLoaded", () => {
                     product.name;
 
 
+                productInfo.appendChild(
+                    productName
+                );
+
+
+                /* =====================================
+                   ADICIONAIS
+                ===================================== */
+
+                if (
+                    Array.isArray(
+                        product.addons
+                    ) &&
+                    product.addons.length >
+                    0
+                ) {
+
+                    const addonsElement =
+                        document.createElement(
+                            "small"
+                        );
+
+
+                    addonsElement.className =
+                        "cart-item-customization";
+
+
+                    addonsElement.textContent =
+                        "Adicionais: " +
+                        product.addons
+                            .map(
+                                (addon) =>
+                                    addon.name
+                            )
+                            .join(
+                                ", "
+                            );
+
+
+                    productInfo.appendChild(
+                        addonsElement
+                    );
+
+                }
+
+
+                /* =====================================
+                   INGREDIENTES REMOVIDOS
+                ===================================== */
+
+                if (
+                    Array.isArray(
+                        product.removedIngredients
+                    ) &&
+                    product.removedIngredients.length >
+                    0
+                ) {
+
+                    const removedElement =
+                        document.createElement(
+                            "small"
+                        );
+
+
+                    removedElement.className =
+                        "cart-item-customization";
+
+
+                    removedElement.textContent =
+                        "Sem: " +
+                        product.removedIngredients
+                            .map(
+                                (ingredient) =>
+                                    ingredient.name
+                            )
+                            .join(
+                                ", "
+                            );
+
+
+                    productInfo.appendChild(
+                        removedElement
+                    );
+
+                }
+
+
+                /* =====================================
+                   PREÇO
+                ===================================== */
+
                 const productPrice =
                     document.createElement(
                         "span"
@@ -1479,14 +2545,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 productInfo.appendChild(
-                    productName
-                );
-
-
-                productInfo.appendChild(
                     productPrice
                 );
 
+
+                /* =====================================
+                   CONTROLES
+                ===================================== */
 
                 const controls =
                     document.createElement(
@@ -1497,6 +2562,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 controls.className =
                     "cart-product-controls";
 
+
+                /* =====================================
+                   DIMINUIR
+                ===================================== */
 
                 const decreaseButton =
                     document.createElement(
@@ -1518,6 +2587,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                /* =====================================
+                   QUANTIDADE
+                ===================================== */
+
                 const quantity =
                     document.createElement(
                         "span"
@@ -1527,6 +2600,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 quantity.textContent =
                     product.quantity;
 
+
+                /* =====================================
+                   AUMENTAR
+                ===================================== */
 
                 const increaseButton =
                     document.createElement(
@@ -1547,6 +2624,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     `Aumentar quantidade de ${product.name}`
                 );
 
+
+                /* =====================================
+                   EDITAR
+                ===================================== */
+
+                const editButton =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                editButton.type =
+                    "button";
+
+
+                editButton.className =
+                    "edit-item";
+
+
+                editButton.textContent =
+                    "✏️";
+
+
+                editButton.setAttribute(
+                    "aria-label",
+                    `Editar ${product.name}`
+                );
+
+
+                /* =====================================
+                   REMOVER
+                ===================================== */
 
                 const removeButton =
                     document.createElement(
@@ -1573,13 +2682,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                /* =====================================
+                   DIMINUIR QUANTIDADE
+                ===================================== */
+
                 decreaseButton.addEventListener(
                     "click",
                     () => {
 
                         if (
-                            product.quantity >
-                            1
+                            Number(
+                                product.quantity
+                            ) > 1
                         ) {
 
                             product.quantity -=
@@ -1605,6 +2719,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                /* =====================================
+                   AUMENTAR QUANTIDADE
+                ===================================== */
+
                 increaseButton.addEventListener(
                     "click",
                     () => {
@@ -1620,6 +2738,62 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 );
 
+
+                /* =====================================
+                   EDITAR ITEM
+                ===================================== */
+
+                editButton.addEventListener(
+                    "click",
+                    () => {
+
+                        const catalogProduct =
+                            supabaseProducts.find(
+                                (item) =>
+                                    item.id ===
+                                    product.productId ||
+                                    item.slug ===
+                                    product.productSlug ||
+                                    item.name ===
+                                    product.name
+                            );
+
+
+                        if (
+                            !catalogProduct
+                        ) {
+
+                            console.error(
+                                "Produto original não encontrado para edição:",
+                                product
+                            );
+
+
+                            window.alert(
+                                "Não foi possível editar este produto."
+                            );
+
+
+                            return;
+
+                        }
+
+
+                        closeCart();
+
+
+                        openProductCustomization(
+                            catalogProduct,
+                            product
+                        );
+
+                    }
+                );
+
+
+                /* =====================================
+                   REMOVER ITEM
+                ===================================== */
 
                 removeButton.addEventListener(
                     "click",
@@ -1641,6 +2815,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                /* =====================================
+                   MONTAR CONTROLES
+                ===================================== */
+
                 controls.appendChild(
                     decreaseButton
                 );
@@ -1657,9 +2835,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 controls.appendChild(
+                    editButton
+                );
+
+
+                controls.appendChild(
                     removeButton
                 );
 
+
+                /* =====================================
+                   MONTAR ITEM
+                ===================================== */
 
                 cartItem.appendChild(
                     productInfo
@@ -1690,7 +2877,9 @@ document.addEventListener("DOMContentLoaded", () => {
        LIMPAR CARRINHO
     ========================================= */
 
-    if (clearCartButton) {
+    if (
+        clearCartButton
+    ) {
 
         clearCartButton.addEventListener(
             "click",
@@ -1712,7 +2901,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
 
 
-                if (!confirmed) {
+                if (
+                    !confirmed
+                ) {
 
                     return;
 
@@ -1738,7 +2929,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function applyCurrentFilter() {
 
-        if (!productsContainer) {
+        if (
+            !productsContainer
+        ) {
 
             return;
 
@@ -1813,7 +3006,6 @@ document.addEventListener("DOMContentLoaded", () => {
             digits.slice(
                 5
             )
-
         );
 
     }
@@ -1833,11 +3025,14 @@ document.addEventListener("DOMContentLoaded", () => {
         streetInput.value =
             "";
 
+
         neighborhoodInput.value =
             "";
 
+
         cityInput.value =
             "";
+
 
         stateInput.value =
             "";
@@ -1869,11 +3064,14 @@ document.addEventListener("DOMContentLoaded", () => {
         streetInput.readOnly =
             readonly;
 
+
         neighborhoodInput.readOnly =
             readonly;
 
+
         cityInput.readOnly =
             readonly;
+
 
         stateInput.readOnly =
             readonly;
@@ -1949,7 +3147,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-            if (!response.ok) {
+            if (
+                !response.ok
+            ) {
 
                 throw new Error(
                     "Não foi possível consultar o CEP."
@@ -1962,7 +3162,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 await response.json();
 
 
-            if (data.erro) {
+            if (
+                data.erro
+            ) {
 
                 clearAddressFields(
                     streetInput,
@@ -2176,7 +3378,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-        if (!address) {
+        if (
+            !address
+        ) {
 
             window.alert(
                 "Informe um endereço de entrega válido."
@@ -2207,7 +3411,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
 
 
-            if (error) {
+            if (
+                error
+            ) {
 
                 console.error(
                     "Erro ao calcular entrega:",
@@ -2225,7 +3431,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
-            if (!data) {
+            if (
+                !data
+            ) {
 
                 console.error(
                     "A Edge Function não retornou dados."
@@ -2371,7 +3579,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createCheckout() {
 
-        if (checkoutOverlay) {
+        if (
+            checkoutOverlay
+        ) {
 
             return;
 
@@ -2397,7 +3607,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <h2>
                         Finalizar pedido
                     </h2>
-
 
                     <button
                         type="button"
@@ -2433,7 +3642,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Nome
                             </label>
 
-
                             <input
                                 type="text"
                                 id="customerName"
@@ -2450,7 +3658,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label for="customerPhone">
                                 WhatsApp
                             </label>
-
 
                             <input
                                 type="tel"
@@ -2469,7 +3676,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 CEP
                             </label>
 
-
                             <div class="cep-input-row">
 
                                 <input
@@ -2484,7 +3690,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             </div>
 
-
                             <small
                                 id="cepStatus"
                                 class="cep-status"
@@ -2498,7 +3703,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label for="customerStreet">
                                 Rua / Avenida
                             </label>
-
 
                             <input
                                 type="text"
@@ -2517,7 +3721,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Número
                             </label>
 
-
                             <input
                                 type="text"
                                 id="customerNumber"
@@ -2534,7 +3737,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Complemento
                             </label>
 
-
                             <input
                                 type="text"
                                 id="customerComplement"
@@ -2549,7 +3751,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label for="customerNeighborhood">
                                 Bairro
                             </label>
-
 
                             <input
                                 type="text"
@@ -2568,7 +3769,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Cidade
                             </label>
 
-
                             <input
                                 type="text"
                                 id="customerCity"
@@ -2585,7 +3785,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label for="customerState">
                                 Estado
                             </label>
-
 
                             <input
                                 type="text"
@@ -2604,7 +3803,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label for="orderNote">
                                 Observação
                             </label>
-
 
                             <textarea
                                 id="orderNote"
@@ -2759,7 +3957,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Subtotal
                             </span>
 
-
                             <strong>
                                 R$ 0,00
                             </strong>
@@ -2773,7 +3970,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 Taxa de entrega
                             </span>
 
-
                             <strong>
                                 R$ 0,00
                             </strong>
@@ -2786,7 +3982,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span>
                                 Total
                             </span>
-
 
                             <strong>
                                 R$ 0,00
@@ -2963,7 +4158,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-            if (!cashChange) {
+            if (
+                !cashChange
+            ) {
 
                 return;
 
@@ -2985,7 +4182,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     "none";
 
 
-                if (changeForInput) {
+                if (
+                    changeForInput
+                ) {
 
                     changeForInput.value =
                         "";
@@ -2995,6 +4194,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 customerData.changeFor =
                     "";
+
 
                 saveCustomerData();
 
@@ -3044,6 +4244,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 cepStatus.textContent =
                     "";
 
+
                 cepStatus.className =
                     "cep-status";
 
@@ -3051,8 +4252,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 deliveryAvailable =
                     false;
 
+
                 deliveryFee =
                     0;
+
 
                 deliveryDistanceKm =
                     null;
@@ -3061,8 +4264,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 customerData.deliveryAvailable =
                     false;
 
+
                 customerData.deliveryFee =
                     0;
+
 
                 customerData.deliveryDistanceKm =
                     null;
@@ -3100,7 +4305,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           NÚMERO - CALCULAR ENTREGA AUTOMATICAMENTE
+           NÚMERO - CALCULAR ENTREGA
         ========================================= */
 
         let deliveryCalculationTimer =
@@ -3118,8 +4323,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 deliveryAvailable =
                     false;
 
+
                 deliveryFee =
                     0;
+
 
                 deliveryDistanceKm =
                     null;
@@ -3128,8 +4335,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 customerData.deliveryAvailable =
                     false;
 
+
                 customerData.deliveryFee =
                     0;
+
 
                 customerData.deliveryDistanceKm =
                     null;
@@ -3333,7 +4542,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                if (submitButton) {
+                if (
+                    submitButton
+                ) {
 
                     submitButton.disabled =
                         true;
@@ -3447,9 +4658,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         await calculateDeliveryFee();
 
 
-                    if (!deliveryValid) {
+                    if (
+                        !deliveryValid
+                    ) {
 
-                        if (submitButton) {
+                        if (
+                            submitButton
+                        ) {
 
                             submitButton.disabled =
                                 false;
@@ -3472,7 +4687,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                if (submitButton) {
+                if (
+                    submitButton
+                ) {
 
                     submitButton.disabled =
                         false;
@@ -3642,10 +4859,12 @@ document.addEventListener("DOMContentLoaded", () => {
         customerData = {
 
             name:
-                customerData.name || "",
+                customerData.name ||
+                "",
 
             phone:
-                customerData.phone || "",
+                customerData.phone ||
+                "",
 
             cep:
                 "",
@@ -3778,7 +4997,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (pixRadio) {
+        if (
+            pixRadio
+        ) {
 
             pixRadio.checked =
                 true;
@@ -3792,7 +5013,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (cashChange) {
+        if (
+            cashChange
+        ) {
 
             cashChange.style.display =
                 "none";
@@ -3806,10 +5029,13 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (cepStatus) {
+        if (
+            cepStatus
+        ) {
 
             cepStatus.textContent =
                 "";
+
 
             cepStatus.className =
                 "cep-status";
@@ -3825,7 +5051,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeCheckout() {
 
-        if (!checkoutOverlay) {
+        if (
+            !checkoutOverlay
+        ) {
 
             return;
 
@@ -3850,7 +5078,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function loadCustomerData() {
 
-        if (!checkoutOverlay) {
+        if (
+            !checkoutOverlay
+        ) {
 
             return;
 
@@ -3913,7 +5143,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
 
 
-                if (field) {
+                if (
+                    field
+                ) {
 
                     field.value =
                         value;
@@ -3930,7 +5162,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (paymentRadio) {
+        if (
+            paymentRadio
+        ) {
 
             paymentRadio.checked =
                 true;
@@ -3944,7 +5178,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (changeFor) {
+        if (
+            changeFor
+        ) {
 
             changeFor.value =
                 customerData.payment ===
@@ -3964,7 +5200,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (cashChange) {
+        if (
+            cashChange
+        ) {
 
             cashChange.style.display =
                 customerData.payment ===
@@ -4022,7 +5260,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-            if (cepStatus) {
+            if (
+                cepStatus
+            ) {
 
                 cepStatus.textContent =
                     "Endereço salvo.";
@@ -4054,7 +5294,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderReview() {
 
-        if (!checkoutOverlay) {
+        if (
+            !checkoutOverlay
+        ) {
 
             return;
 
@@ -4132,8 +5374,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 itemPrice.textContent =
                     formatPrice(
-                        product.price *
-                        product.quantity
+                        Number(
+                            product.price
+                        ) *
+                        Number(
+                            product.quantity
+                        )
                     );
 
 
@@ -4147,6 +5393,80 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                /* =====================================
+                   ADICIONAIS NA REVISÃO
+                ===================================== */
+
+                if (
+                    Array.isArray(
+                        product.addons
+                    ) &&
+                    product.addons.length >
+                    0
+                ) {
+
+                    const addons =
+                        document.createElement(
+                            "small"
+                        );
+
+
+                    addons.textContent =
+                        "Adicionais: " +
+                        product.addons
+                            .map(
+                                (addon) =>
+                                    addon.name
+                            )
+                            .join(
+                                ", "
+                            );
+
+
+                    item.appendChild(
+                        addons
+                    );
+
+                }
+
+
+                /* =====================================
+                   INGREDIENTES REMOVIDOS NA REVISÃO
+                ===================================== */
+
+                if (
+                    Array.isArray(
+                        product.removedIngredients
+                    ) &&
+                    product.removedIngredients.length >
+                    0
+                ) {
+
+                    const removed =
+                        document.createElement(
+                            "small"
+                        );
+
+
+                    removed.textContent =
+                        "Sem: " +
+                        product.removedIngredients
+                            .map(
+                                (ingredient) =>
+                                    ingredient.name
+                            )
+                            .join(
+                                ", "
+                            );
+
+
+                    item.appendChild(
+                        removed
+                    );
+
+                }
+
+
                 reviewItems.appendChild(
                     item
                 );
@@ -4155,12 +5475,15 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
+        /* =========================================
+           ENDEREÇO
+        ========================================= */
+
         reviewAddress.innerHTML = `
 
             <h4>
                 Endereço de entrega
             </h4>
-
 
             <p>
 
@@ -4172,15 +5495,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     customerData.number
                 )}
 
-                ${customerData.complement
-                    ? ` - ${escapeHtml(
-                        customerData.complement
-                    )}`
-                    : ""
+                ${
+                    customerData.complement
+                        ? ` - ${escapeHtml(
+                            customerData.complement
+                        )}`
+                        : ""
                 }
 
             </p>
-
 
             <p>
 
@@ -4202,7 +5525,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             </p>
 
-
             <p>
 
                 CEP:
@@ -4216,12 +5538,15 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
 
+        /* =========================================
+           PAGAMENTO
+        ========================================= */
+
         reviewPayment.innerHTML = `
 
             <h4>
                 Forma de pagamento
             </h4>
-
 
             <p>
 
@@ -4232,11 +5557,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             </p>
 
-
-            ${customerData.payment ===
-                "Dinheiro" &&
+            ${
+                customerData.payment ===
+                    "Dinheiro" &&
                 customerData.changeFor
-                ? `
+                    ? `
 
                         <p>
 
@@ -4249,11 +5574,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         </p>
 
                     `
-                : ""
+                    : ""
             }
 
         `;
 
+
+        /* =========================================
+           TOTAIS
+        ========================================= */
 
         reviewTotalContainer.innerHTML = `
 
@@ -4262,7 +5591,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span>
                     Subtotal
                 </span>
-
 
                 <strong>
                     ${formatPrice(
@@ -4279,7 +5607,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     Taxa de entrega
                 </span>
 
-
                 <strong>
                     ${formatPrice(
                         deliveryFee
@@ -4294,7 +5621,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span>
                     Total
                 </span>
-
 
                 <strong>
                     ${formatPrice(
@@ -4311,12 +5637,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================
        ENVIAR PEDIDO PARA WHATSAPP
-       E LIMPAR PEDIDO APÓS CONFIRMAÇÃO
     ========================================= */
 
     function sendOrderToWhatsApp() {
 
-        if (!storeWhatsapp) {
+        if (
+            !storeWhatsapp
+        ) {
 
             window.alert(
                 "O WhatsApp da pizzaria não está configurado no momento."
@@ -4335,7 +5662,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (!whatsappNumber) {
+        if (
+            !whatsappNumber
+        ) {
 
             window.alert(
                 "O WhatsApp da pizzaria não está configurado corretamente."
@@ -4356,7 +5685,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         let message =
-            "Olá! Gostaria de fazer um pedido \n\n";
+            "Olá! Gostaria de fazer um pedido\n\n";
 
 
         message +=
@@ -4368,9 +5697,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 message +=
                     `${product.quantity}x ${product.name} - ${formatPrice(
-                        product.price *
-                        product.quantity
+                        Number(
+                            product.price
+                        ) *
+                        Number(
+                            product.quantity
+                        )
                     )}\n`;
+
+
+                /* =====================================
+                   ADICIONAIS
+                ===================================== */
+
+                if (
+                    Array.isArray(
+                        product.addons
+                    ) &&
+                    product.addons.length >
+                    0
+                ) {
+
+                    message +=
+                        `  Adicionais: ${product.addons
+                            .map(
+                                (addon) =>
+                                    `${addon.name} (+${formatPrice(
+                                        addon.price
+                                    )})`
+                            )
+                            .join(
+                                ", "
+                            )}\n`;
+
+                }
+
+
+                /* =====================================
+                   INGREDIENTES REMOVIDOS
+                ===================================== */
+
+                if (
+                    Array.isArray(
+                        product.removedIngredients
+                    ) &&
+                    product.removedIngredients.length >
+                    0
+                ) {
+
+                    message +=
+                        `  Sem: ${product.removedIngredients
+                            .map(
+                                (ingredient) =>
+                                    ingredient.name
+                            )
+                            .join(
+                                ", "
+                            )}\n`;
+
+                }
 
             }
         );
@@ -4503,10 +5888,12 @@ document.addEventListener("DOMContentLoaded", () => {
         customerData = {
 
             name:
-                customerData.name || "",
+                customerData.name ||
+                "",
 
             phone:
-                customerData.phone || "",
+                customerData.phone ||
+                "",
 
             cep:
                 "",
@@ -4633,7 +6020,9 @@ document.addEventListener("DOMContentLoaded", () => {
        BOTÃO CHECKOUT
     ========================================= */
 
-    if (checkoutButton) {
+    if (
+        checkoutButton
+    ) {
 
         checkoutButton.addEventListener(
             "click",
