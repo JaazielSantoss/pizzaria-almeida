@@ -8,6 +8,7 @@
    CEP + PREENCHIMENTO AUTOMÁTICO
    TROCO SOMENTE PARA DINHEIRO
    PERSONALIZAÇÃO DE PRODUTOS
+   PEDIDOS SALVOS NO SUPABASE
 ========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -44,6 +45,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkoutButton =
         document.querySelector(".checkout-button");
 
+    const trackOrderButton = document.querySelector(".track-order-button");
+    const trackingOverlay = document.querySelector(".tracking-overlay");
+    const closeTrackingButton = document.querySelector(".close-tracking");
+    const trackingSearchButton = document.querySelector(".tracking-search-button");
+    const trackingOrderNumber = document.querySelector("#tracking-order-number");
+    const trackingPhoneLast4 = document.querySelector("#tracking-phone-last4");
+    const trackingResult = document.querySelector(".tracking-result");
+    const orderSuccessOverlay = document.querySelector(".order-success-overlay");
+    const successOrderNumber = document.querySelector(".success-order-number");
+    const successTrackButton = document.querySelector(".success-track-button");
+    const successCloseButton = document.querySelector(".success-close-button");
+    const trackingCancelContainer = document.querySelector(".tracking-cancel-container");
+    const trackingCancelButton = document.querySelector(".tracking-cancel-button");
 
     /* =========================================
        ELEMENTOS DO CARDÁPIO
@@ -87,16 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
             customerData.deliveryDistanceKm
         ) || null;
 
-
     let deliveryFee =
         Number(
             customerData.deliveryFee
         ) || 0;
 
-
     let deliveryAvailable =
         customerData.deliveryAvailable === true;
-
 
     let calculatedDeliveryAddress =
         "";
@@ -126,6 +137,305 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let supabaseCategories = [];
 
+    if (trackingCancelContainer) {
+        trackingCancelContainer.style.display = "none";
+    }
+
+    /* =========================================
+        BUSCAR PEDIDO
+    ========================================= */
+
+
+    if (trackingSearchButton) {
+        trackingSearchButton.addEventListener("click", async () => {
+
+            const orderNumber = trackingOrderNumber.value.trim();
+            const phoneLast4 = trackingPhoneLast4.value.trim();
+
+            trackingResult.innerHTML = "";
+
+            if (!orderNumber || !phoneLast4) {
+                trackingResult.innerHTML = `
+                <p style="color: #c62828;">
+                    Informe o número do pedido e os últimos 4 números do telefone.
+                </p>
+            `;
+                return;
+            }
+
+            if (!/^\d{4}$/.test(phoneLast4)) {
+                trackingResult.innerHTML = `
+                <p style="color: #c62828;">
+                    Informe exatamente os 4 últimos números do telefone.
+                </p>
+            `;
+                return;
+            }
+
+            trackingSearchButton.disabled = true;
+            trackingSearchButton.textContent = "Consultando...";
+
+            try {
+
+                const { data, error } = await supabaseClient.rpc(
+                    "get_order_tracking",
+                    {
+                        p_order_number: Number(orderNumber),
+                        p_phone_last4: phoneLast4
+                    }
+                );
+
+                if (error) {
+                    console.error("Erro ao consultar pedido:", error);
+                    throw error;
+                }
+
+                console.log("Resultado do acompanhamento:", data);
+
+                if (!data || data.found !== true) {
+
+                    if (trackingCancelContainer) {
+                        trackingCancelContainer.style.display = "none";
+                    }
+
+                    trackingResult.innerHTML = `
+                        <p style="color: #c62828;">
+                            Pedido não encontrado. Confira os dados informados.
+                        </p>
+                    `;
+                    return;
+                }
+
+                if (trackingCancelContainer) {
+                    trackingCancelContainer.style.display = "block";
+                }
+
+                trackingResult.innerHTML = `
+                    <div class="tracking-order-found">
+
+                        <h3>
+                            Pedido #${data.order_number}
+                        </h3>
+
+                        <p>
+                            Status atual:
+                            <strong>${getTrackingStatusLabel(data.status)}</strong>
+                        </p>
+
+                    </div>
+                `;
+
+            } catch (error) {
+
+                console.error("Erro no acompanhamento:", error);
+
+                trackingResult.innerHTML = `
+                <p style="color: #c62828;">
+                    Não foi possível consultar o pedido. Tente novamente.
+                </p>
+            `;
+
+            } finally {
+
+                trackingSearchButton.disabled = false;
+                trackingSearchButton.textContent = "Acompanhar pedido";
+
+            }
+
+        });
+    }
+
+    if (trackingCancelButton) {
+
+        trackingCancelButton.addEventListener("click", () => {
+
+            const orderNumber =
+                trackingOrderNumber
+                    ? trackingOrderNumber.value.trim()
+                    : "";
+
+            if (!orderNumber) {
+                return;
+            }
+
+            if (!storeWhatsapp) {
+
+                window.alert(
+                    "O WhatsApp da pizzaria não está configurado no momento."
+                );
+
+                return;
+            }
+
+            const whatsappNumber =
+                storeWhatsapp.replace(/\D/g, "");
+
+            if (!whatsappNumber) {
+
+                window.alert(
+                    "O WhatsApp da pizzaria não está configurado corretamente."
+                );
+
+                return;
+            }
+
+            const message =
+                `Olá! Gostaria de solicitar o cancelamento do pedido #${orderNumber}.`;
+
+            const whatsappUrl =
+                `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+            window.open(
+                whatsappUrl,
+                "_blank"
+            );
+
+        });
+
+    }
+
+    function getTrackingStatusLabel(status) {
+
+        const statusLabels = {
+            received: "Pedido recebido",
+            preparing: "Em preparo",
+            ready: "Pedido pronto",
+            out_for_delivery: "Saiu para entrega",
+            delivered: "Pedido entregue",
+            cancelled: "Pedido cancelado"
+        };
+
+        return statusLabels[status] || "Status desconhecido";
+    }
+
+    /* =========================================
+        ACOMPANHAR PEDIDO
+    ========================================= */
+
+
+    function openTracking() {
+        trackingOverlay.classList.add("active");
+        trackingOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeTracking() {
+        trackingOverlay.classList.remove("active");
+        trackingOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    if (trackOrderButton) {
+        trackOrderButton.addEventListener("click", openTracking);
+    }
+
+    if (closeTrackingButton) {
+        closeTrackingButton.addEventListener("click", closeTracking);
+    }
+
+    if (trackingOverlay) {
+        trackingOverlay.addEventListener("click", (event) => {
+            if (event.target === trackingOverlay) {
+                closeTracking();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && trackingOverlay?.classList.contains("active")) {
+            closeTracking();
+        }
+    });
+
+    /* =========================================
+        PEDIDO REALIZADO
+    ========================================= */
+
+    function openOrderSuccess(orderNumber) {
+
+        if (!orderSuccessOverlay) {
+            return;
+        }
+
+        if (successOrderNumber) {
+            successOrderNumber.textContent = `#${orderNumber}`;
+        }
+
+        orderSuccessOverlay.classList.add("active");
+        orderSuccessOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeOrderSuccess() {
+
+        if (!orderSuccessOverlay) {
+            return;
+        }
+
+        orderSuccessOverlay.classList.remove("active");
+        orderSuccessOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    if (successCloseButton) {
+
+        successCloseButton.addEventListener(
+            "click",
+            closeOrderSuccess
+        );
+
+    }
+
+    if (orderSuccessOverlay) {
+
+        orderSuccessOverlay.addEventListener(
+            "click",
+            (event) => {
+
+                if (event.target === orderSuccessOverlay) {
+                    closeOrderSuccess();
+                }
+
+            }
+        );
+
+    }
+
+    if (successTrackButton) {
+
+        successTrackButton.addEventListener(
+            "click",
+            () => {
+
+                const orderNumber =
+                    successOrderNumber
+                        ? successOrderNumber.textContent
+                            .replace("#", "")
+                            .trim()
+                        : "";
+
+                const phoneDigits =
+                    String(
+                        customerData.phone || ""
+                    ).replace(
+                        /\D/g,
+                        ""
+                    );
+
+                const phoneLast4 =
+                    phoneDigits.slice(-4);
+
+                if (trackingOrderNumber) {
+                    trackingOrderNumber.value = orderNumber;
+                }
+
+                if (trackingPhoneLast4) {
+                    trackingPhoneLast4.value = phoneLast4;
+                }
+
+                closeOrderSuccess();
+                openTracking();
+
+            }
+        );
+
+    }
 
     /* =========================================
        FORMATAR PREÇO
@@ -1265,7 +1575,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ========================================= */
 
         const basePrice =
-            Number(product.price);
+            Number(
+                product.price
+            );
 
 
         const selectedAddons =
@@ -1402,19 +1714,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <strong>
                         ${formatPrice(
-                            basePrice +
-                            selectedAddons.reduce(
-                                (
-                                    total,
-                                    addon
-                                ) =>
-                                    total +
-                                    Number(
-                                        addon.price
-                                    ),
-                                0
-                            )
-                        )}
+                basePrice +
+                selectedAddons.reduce(
+                    (
+                        total,
+                        addon
+                    ) =>
+                        total +
+                        Number(
+                            addon.price
+                        ),
+                    0
+                )
+            )}
                     </strong>
 
                 </div>
@@ -1433,11 +1745,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     type="button"
                     class="customization-confirm"
                 >
-                    ${
-                        existingItem
-                            ? "Salvar alterações"
-                            : "Adicionar ao carrinho"
-                    }
+                    ${existingItem
+                ? "Salvar alterações"
+                : "Adicionar ao carrinho"
+            }
                 </button>
             `
         );
@@ -1621,8 +1932,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <strong>
                         + ${formatPrice(
-                            addon.price
-                        )}
+                    addon.price
+                )}
                     </strong>
                 `;
 
@@ -1637,10 +1948,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         'input[type="checkbox"]'
                     );
 
-
-                /* =====================================
-                   RECUPERAR ADICIONAL AO EDITAR
-                ===================================== */
 
                 if (
                     selectedAddons.some(
@@ -1768,7 +2075,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             ingredientsList.innerHTML = `
                 <p>
-                    Nenhum ingrediente removível disponível.
+                    Nenhum ingrediente removível cadastrado.
                 </p>
             `;
 
@@ -1810,10 +2117,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         'input[type="checkbox"]'
                     );
 
-
-                /* =====================================
-                   RECUPERAR INGREDIENTE AO EDITAR
-                ===================================== */
 
                 if (
                     selectedIngredients.some(
@@ -1988,6 +2291,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     addons:
                         selectedAddons.map(
                             (addon) => ({
+
                                 id:
                                     addon.id,
 
@@ -1998,17 +2302,20 @@ document.addEventListener("DOMContentLoaded", () => {
                                     Number(
                                         addon.price
                                     )
+
                             })
                         ),
 
                     removedIngredients:
                         selectedIngredients.map(
                             (ingredient) => ({
+
                                 id:
                                     ingredient.id,
 
                                 name:
                                     ingredient.name
+
                             })
                         ),
 
@@ -2081,7 +2388,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================
        ADICIONAR PRODUTO
-       FUNÇÃO MANTIDA PARA COMPATIBILIDADE
+       COMPATIBILIDADE
     ========================================= */
 
     function addProductToCart(
@@ -2683,7 +2990,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   DIMINUIR QUANTIDADE
+                   DIMINUIR
                 ===================================== */
 
                 decreaseButton.addEventListener(
@@ -2720,7 +3027,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   AUMENTAR QUANTIDADE
+                   AUMENTAR
                 ===================================== */
 
                 increaseButton.addEventListener(
@@ -2740,7 +3047,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   EDITAR ITEM
+                   EDITAR
                 ===================================== */
 
                 editButton.addEventListener(
@@ -2792,7 +3099,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   REMOVER ITEM
+                   REMOVER
                 ===================================== */
 
                 removeButton.addEventListener(
@@ -2816,7 +3123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   MONTAR CONTROLES
+                   CONTROLES
                 ===================================== */
 
                 controls.appendChild(
@@ -2845,7 +3152,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   MONTAR ITEM
+                   ITEM
                 ===================================== */
 
                 cartItem.appendChild(
@@ -3080,7 +3387,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================
-       BUSCAR CEP NO VIACEP
+       BUSCAR CEP
     ========================================= */
 
     async function searchCep(
@@ -3559,6 +3866,245 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             return false;
+
+        }
+
+    }
+
+
+    /* =========================================
+       SALVAR PEDIDO NO SUPABASE
+    ========================================= */
+
+    async function saveOrderToSupabase() {
+
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            console.error(
+                "supabaseClient não foi encontrado."
+            );
+
+
+            return null;
+
+        }
+
+
+        try {
+
+            /* =====================================
+               DADOS DO CLIENTE
+            ===================================== */
+
+            const customer = {
+
+                name:
+                    customerData.name,
+
+                phone:
+                    customerData.phone,
+
+                cep:
+                    customerData.cep,
+
+                street:
+                    customerData.street,
+
+                number:
+                    customerData.number,
+
+                complement:
+                    customerData.complement,
+
+                neighborhood:
+                    customerData.neighborhood,
+
+                city:
+                    customerData.city,
+
+                state:
+                    customerData.state
+
+            };
+
+
+            /* =====================================
+               VALORES DO PEDIDO
+            ===================================== */
+
+            const subtotal =
+                calculateSubtotal();
+
+
+            const total =
+                calculateTotal();
+
+
+            const order = {
+
+                subtotal:
+                    subtotal,
+
+                delivery_fee:
+                    Number(
+                        deliveryFee
+                    ) || 0,
+
+                total:
+                    total,
+
+                payment_method:
+                    customerData.payment ||
+                    "Pix",
+
+                notes:
+                    customerData.note ||
+                    ""
+
+            };
+
+
+            /* =====================================
+               ITENS
+            ===================================== */
+
+            const items =
+                cart.map(
+                    (product) => ({
+
+                        product_id:
+                            Number(
+                                product.productId
+                            ),
+
+                        product_name:
+                            product.name,
+
+                        quantity:
+                            Number(
+                                product.quantity
+                            ),
+
+                        unit_price:
+                            Number(
+                                product.price
+                            ),
+
+                        addons:
+                            Array.isArray(
+                                product.addons
+                            )
+                                ? product.addons
+                                : [],
+
+                        removed_ingredients:
+                            Array.isArray(
+                                product.removedIngredients
+                            )
+                                ? product.removedIngredients
+                                : [],
+
+                        addons_total:
+                            Number(
+                                product.addonsTotal
+                            ) || 0,
+
+                        item_total:
+                            Number(
+                                product.price
+                            ) *
+                            Number(
+                                product.quantity
+                            )
+
+                    })
+                );
+
+
+            /* =====================================
+               CHAMAR RPC
+            ===================================== */
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "create_order",
+                        {
+                            p_customer:
+                                customer,
+
+                            p_order:
+                                order,
+
+                            p_items:
+                                items
+                        }
+                    );
+
+
+            if (
+                error
+            ) {
+
+                console.error(
+                    "Erro ao criar pedido:",
+                    error
+                );
+
+
+                return null;
+
+            }
+
+
+            if (
+                !data
+            ) {
+
+                console.error(
+                    "O Supabase não retornou os dados do pedido."
+                );
+
+
+                return null;
+
+            }
+
+
+            console.log(
+                "Pedido salvo no Supabase:",
+                data
+            );
+
+
+            return {
+
+                id:
+                    data.id,
+
+                order_number:
+                    data.order_number,
+
+                tracking_token:
+                    data.tracking_token
+
+            };
+
+        } catch (error) {
+
+            console.error(
+                "Erro inesperado ao salvar pedido:",
+                error
+            );
+
+
+            return null;
 
         }
 
@@ -4137,6 +4683,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
+           CONTROLE DE DUPLO CLIQUE
+        ========================================= */
+
+        let orderBeingCreated =
+            false;
+
+
+        /* =========================================
            FECHAR CHECKOUT
         ========================================= */
 
@@ -4147,7 +4701,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           TROCO SOMENTE PARA DINHEIRO
+           TROCO
         ========================================= */
 
         function updateCashChangeVisibility() {
@@ -4219,7 +4773,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           CEP - BUSCA AUTOMÁTICA
+           CEP
         ========================================= */
 
         cepInput.addEventListener(
@@ -4305,7 +4859,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           NÚMERO - CALCULAR ENTREGA
+           NÚMERO / ENTREGA AUTOMÁTICA
         ========================================= */
 
         let deliveryCalculationTimer =
@@ -4462,7 +5016,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           FORMULÁRIO CLIENTE
+           FORMULÁRIO DO CLIENTE
         ========================================= */
 
         customerForm.addEventListener(
@@ -4595,8 +5149,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim(),
 
                     neighborhood:
-                        neighborhoodInput
-                            .value
+                        neighborhoodInput.value
                             .trim(),
 
                     city:
@@ -4725,7 +5278,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           VOLTAR
+           VOLTAR ETAPA 2
         ========================================= */
 
         checkoutBack.addEventListener(
@@ -4808,12 +5361,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =========================================
-           CONFIRMAR
+           CONFIRMAR PEDIDO
         ========================================= */
 
         confirmOrder.addEventListener(
             "click",
-            () => {
+            async () => {
+
+                /* =====================================
+                   IMPEDIR SEGUNDO CLIQUE
+                ===================================== */
+
+                if (
+                    orderBeingCreated
+                ) {
+
+                    return;
+
+                }
+
+
+                /* =====================================
+                   VALIDAR ENTREGA
+                ===================================== */
 
                 if (
                     deliveryAvailable !==
@@ -4835,7 +5405,150 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                sendOrderToWhatsApp();
+                /* =====================================
+                   ABRIR JANELA DO WHATSAPP
+                   DURANTE O CLIQUE DO USUÁRIO
+                ===================================== */
+
+                let whatsappWindow =
+                    null;
+
+
+                const whatsappNumber =
+                    storeWhatsapp
+                        ? storeWhatsapp.replace(
+                            /\D/g,
+                            ""
+                        )
+                        : "";
+
+
+                if (
+                    whatsappNumber
+                ) {
+
+                    whatsappWindow =
+                        window.open(
+                            "about:blank",
+                            "_blank"
+                        );
+
+                }
+
+
+                /* =====================================
+                   BLOQUEAR BOTÃO
+                ===================================== */
+
+                orderBeingCreated =
+                    true;
+
+
+                confirmOrder.disabled =
+                    true;
+
+
+                confirmOrder.textContent =
+                    "Salvando pedido...";
+
+
+                try {
+
+                    /* =================================
+                       CRIAR PEDIDO
+                    ================================= */
+
+                    const order =
+                        await saveOrderToSupabase();
+
+
+                    if (
+                        !order
+                    ) {
+
+                        throw new Error(
+                            "Não foi possível salvar o pedido."
+                        );
+
+                    }
+
+
+                    console.log(
+                        "Número do pedido:",
+                        order.order_number
+                    );
+
+
+                    console.log(
+                        "Token de acompanhamento:",
+                        order.tracking_token
+                    );
+
+                    openOrderSuccess(
+                        order.order_number
+                    );
+
+
+                    /* =================================
+                       ABRIR WHATSAPP
+                    ================================= */
+
+                    sendOrderToWhatsApp(
+                        order,
+                        whatsappWindow
+                    );
+
+
+                    /* =================================
+                       FINALIZAR
+                    ================================= */
+
+                    orderBeingCreated =
+                        false;
+
+
+                    confirmOrder.disabled =
+                        false;
+
+
+                    confirmOrder.textContent =
+                        "Confirmar pedido";
+
+                } catch (error) {
+
+                    console.error(
+                        "Erro ao finalizar pedido:",
+                        error
+                    );
+
+
+                    orderBeingCreated =
+                        false;
+
+
+                    confirmOrder.disabled =
+                        false;
+
+
+                    confirmOrder.textContent =
+                        "Confirmar pedido";
+
+
+                    if (
+                        whatsappWindow &&
+                        !whatsappWindow.closed
+                    ) {
+
+                        whatsappWindow.close();
+
+                    }
+
+
+                    window.alert(
+                        "Não foi possível finalizar o pedido. Tente novamente."
+                    );
+
+                }
 
             }
         );
@@ -5394,7 +6107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   ADICIONAIS NA REVISÃO
+                   ADICIONAIS
                 ===================================== */
 
                 if (
@@ -5431,7 +6144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 /* =====================================
-                   INGREDIENTES REMOVIDOS NA REVISÃO
+                   INGREDIENTES REMOVIDOS
                 ===================================== */
 
                 if (
@@ -5488,40 +6201,39 @@ document.addEventListener("DOMContentLoaded", () => {
             <p>
 
                 ${escapeHtml(
-                    customerData.street
-                )},
+            customerData.street
+        )},
 
                 ${escapeHtml(
-                    customerData.number
-                )}
+            customerData.number
+        )}
 
-                ${
+                ${customerData.complement
+                ? ` - ${escapeHtml(
                     customerData.complement
-                        ? ` - ${escapeHtml(
-                            customerData.complement
-                        )}`
-                        : ""
-                }
+                )}`
+                : ""
+            }
 
             </p>
 
             <p>
 
                 ${escapeHtml(
-                    customerData.neighborhood
-                )}
+                customerData.neighborhood
+            )}
 
                 -
 
                 ${escapeHtml(
-                    customerData.city
-                )}
+                customerData.city
+            )}
 
                 /
 
                 ${escapeHtml(
-                    customerData.state
-                )}
+                customerData.state
+            )}
 
             </p>
 
@@ -5530,8 +6242,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 CEP:
 
                 ${escapeHtml(
-                    customerData.cep
-                )}
+                customerData.cep
+            )}
 
             </p>
 
@@ -5551,30 +6263,29 @@ document.addEventListener("DOMContentLoaded", () => {
             <p>
 
                 ${escapeHtml(
-                    customerData.payment ||
-                    "Pix"
-                )}
+            customerData.payment ||
+            "Pix"
+        )}
 
             </p>
 
-            ${
-                customerData.payment ===
-                    "Dinheiro" &&
+            ${customerData.payment ===
+                "Dinheiro" &&
                 customerData.changeFor
-                    ? `
+                ? `
 
                         <p>
 
                             Troco para:
 
                             ${escapeHtml(
-                                customerData.changeFor
-                            )}
+                    customerData.changeFor
+                )}
 
                         </p>
 
                     `
-                    : ""
+                : ""
             }
 
         `;
@@ -5594,8 +6305,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <strong>
                     ${formatPrice(
-                        calculateSubtotal()
-                    )}
+            calculateSubtotal()
+        )}
                 </strong>
 
             </div>
@@ -5609,8 +6320,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <strong>
                     ${formatPrice(
-                        deliveryFee
-                    )}
+            deliveryFee
+        )}
                 </strong>
 
             </div>
@@ -5624,8 +6335,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <strong>
                     ${formatPrice(
-                        calculateTotal()
-                    )}
+            calculateTotal()
+        )}
                 </strong>
 
             </div>
@@ -5639,14 +6350,21 @@ document.addEventListener("DOMContentLoaded", () => {
        ENVIAR PEDIDO PARA WHATSAPP
     ========================================= */
 
-    function sendOrderToWhatsApp() {
+    function sendOrderToWhatsApp(
+        order,
+        whatsappWindow = null
+    ) {
+
+        /* =========================================
+           VALIDAR PEDIDO
+        ========================================= */
 
         if (
-            !storeWhatsapp
+            !order
         ) {
 
-            window.alert(
-                "O WhatsApp da pizzaria não está configurado no momento."
+            console.error(
+                "Pedido não recebido para envio ao WhatsApp."
             );
 
 
@@ -5656,25 +6374,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         const whatsappNumber =
-            storeWhatsapp.replace(
-                /\D/g,
-                ""
-            );
+            storeWhatsapp
+                ? storeWhatsapp.replace(
+                    /\D/g,
+                    ""
+                )
+                : "";
 
 
-        if (
-            !whatsappNumber
-        ) {
-
-            window.alert(
-                "O WhatsApp da pizzaria não está configurado corretamente."
-            );
-
-
-            return;
-
-        }
-
+        /* =========================================
+           CALCULAR VALORES
+        ========================================= */
 
         const subtotal =
             calculateSubtotal();
@@ -5684,12 +6394,16 @@ document.addEventListener("DOMContentLoaded", () => {
             calculateTotal();
 
 
+        /* =========================================
+           MONTAR MENSAGEM
+        ========================================= */
+
         let message =
             "Olá! Gostaria de fazer um pedido\n\n";
 
 
         message +=
-            "*PEDIDO*\n";
+            `*PEDIDO #${order.order_number}*\n`;
 
 
         cart.forEach(
@@ -5706,9 +6420,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     )}\n`;
 
 
-                /* =====================================
+                /* =================================
                    ADICIONAIS
-                ===================================== */
+                ================================= */
 
                 if (
                     Array.isArray(
@@ -5733,9 +6447,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                /* =====================================
+                /* =================================
                    INGREDIENTES REMOVIDOS
-                ===================================== */
+                ================================= */
 
                 if (
                     Array.isArray(
@@ -5847,20 +6561,54 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        const whatsappUrl =
-            `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                message
-            )}`;
-
-
         /* =========================================
            ABRIR WHATSAPP
         ========================================= */
 
-        window.open(
-            whatsappUrl,
-            "_blank"
-        );
+        if (
+            whatsappNumber
+        ) {
+
+            const whatsappUrl =
+                `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+                    message
+                )}`;
+
+
+            if (
+                whatsappWindow &&
+                !whatsappWindow.closed
+            ) {
+
+                whatsappWindow.location.href =
+                    whatsappUrl;
+
+            } else {
+
+                window.open(
+                    whatsappUrl,
+                    "_blank"
+                );
+
+            }
+
+        } else {
+
+            if (
+                whatsappWindow &&
+                !whatsappWindow.closed
+            ) {
+
+                whatsappWindow.close();
+
+            }
+
+
+            window.alert(
+                `Pedido #${order.order_number} criado com sucesso.`
+            );
+
+        }
 
 
         /* =========================================

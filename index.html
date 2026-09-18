@@ -50,6 +50,9 @@
 
                 </nav>
 
+                <button class="track-order-button" type="button">
+                    Acompanhar pedido
+                </button>
 
                 <button class="cart-button" type="button" aria-label="Abrir carrinho">
 
@@ -312,6 +315,104 @@
 
     </aside>
 
+    <!-- =========================================
+     ACOMPANHAR PEDIDO
+========================================= -->
+    <div class="tracking-overlay" aria-hidden="true">
+        <div class="tracking-modal">
+
+            <button type="button" class="close-tracking" aria-label="Fechar acompanhamento">
+                &times;
+            </button>
+
+            <h2>Acompanhar pedido</h2>
+
+            <p class="tracking-description">
+                Informe o número do pedido e os últimos 4 números do telefone.
+            </p>
+
+            <div class="tracking-form">
+
+                <div class="tracking-field">
+                    <label for="tracking-order-number">
+                        Número do pedido
+                    </label>
+
+                    <input type="number" id="tracking-order-number" placeholder="Ex: 3" min="1">
+                </div>
+
+                <div class="tracking-field">
+                    <label for="tracking-phone-last4">
+                        Últimos 4 números do telefone
+                    </label>
+
+                    <input type="text" id="tracking-phone-last4" placeholder="Ex: 1234" inputmode="numeric"
+                        maxlength="4">
+                </div>
+
+                <button type="button" class="tracking-search-button">
+                    Acompanhar pedido
+                </button>
+
+            </div>
+
+            <div class="tracking-result"></div>
+
+            <div class="tracking-cancel-container">
+
+                <button type="button" class="tracking-cancel-button">
+                    Solicitar cancelamento
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =========================================
+     PEDIDO REALIZADO
+========================================= -->
+
+    <div class="order-success-overlay" aria-hidden="true">
+
+        <div class="order-success-modal">
+
+            <div class="order-success-icon">
+                🍕
+            </div>
+
+            <h2>
+                Pedido realizado com sucesso!
+            </h2>
+
+            <p class="order-success-message">
+                Seu pedido
+                <strong class="success-order-number">
+                    #0
+                </strong>
+                foi recebido.
+            </p>
+
+            <p class="order-success-description">
+                Você pode acompanhar o andamento do seu pedido
+                a qualquer momento.
+            </p>
+
+            <div class="order-success-actions">
+
+                <button type="button" class="success-track-button">
+                    Acompanhar meu pedido
+                </button>
+
+                <button type="button" class="success-close-button">
+                    Fechar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 
     <!-- =========================================
          SCRIPTS

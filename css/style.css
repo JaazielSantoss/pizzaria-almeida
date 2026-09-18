@@ -135,6 +135,25 @@ button {
     font-weight: 700;
 }
 
+.track-order-button {
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    color: #a70000;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    white-space: nowrap;
+}
+
+.track-order-button:hover {
+    background: #8f0000;
+    border-color: #8f0000;
+    color: #ffffff;
+}
+
 
 /* ==============================
    HERO
@@ -660,7 +679,7 @@ button {
     margin: 0;
 }
 
-.cart-product-info > span {
+.cart-product-info>span {
     font-size: 14px;
 
     font-weight: 600;
@@ -730,7 +749,7 @@ button {
     transform: scale(0.95);
 }
 
-.cart-product-controls > span {
+.cart-product-controls>span {
     min-width: 25px;
 
     text-align: center;
@@ -1050,7 +1069,7 @@ button {
     color: #222222;
 }
 
-.customization-modal > p {
+.customization-modal>p {
     margin-bottom: 25px;
 
     color: #666666;
@@ -1866,6 +1885,377 @@ button {
     white-space: nowrap;
 }
 
+/* =========================================
+   ACOMPANHAR PEDIDO
+========================================= */
+
+.tracking-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+}
+
+.tracking-overlay.active {
+    display: flex;
+}
+
+.tracking-modal {
+    position: relative;
+    width: 100%;
+    max-width: 450px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+.close-tracking {
+    position: absolute;
+
+    top: 15px;
+
+    right: 15px;
+
+    width: 36px;
+
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 0;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background-color: #c62828;
+
+    color: #ffffff;
+
+    font-size: 24px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.close-tracking:hover {
+    background-color: #a00000;
+
+    transform: rotate(90deg);
+}
+
+.tracking-field input[type="number"]::-webkit-inner-spin-button,
+.tracking-field input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.tracking-field input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.tracking-modal h2 {
+    margin: 0 40px 10px 0;
+    color: #a70000;
+    font-size: 26px;
+}
+
+.tracking-description {
+    margin-bottom: 25px;
+    color: #666666;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.tracking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.tracking-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.tracking-field label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.tracking-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 14px;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: 0.2s;
+}
+
+.tracking-field input:focus {
+    border-color: #a70000;
+    box-shadow: 0 0 0 2px rgba(167, 0, 0, 0.1);
+}
+
+.tracking-search-button {
+    width: 100%;
+    border: none;
+    background: #a70000;
+    color: #ffffff;
+    padding: 13px 18px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tracking-search-button:hover {
+    background: #8f0000;
+}
+
+.tracking-result {
+    margin-top: 25px;
+}
+
+/* ==============================
+   CANCELAMENTO DO PEDIDO
+============================== */
+
+.tracking-cancel-container {
+    margin-top: 18px;
+    text-align: center;
+}
+
+.tracking-cancel-button {
+    width: 100%;
+    padding: 12px 18px;
+
+    border: 1px solid #c62828;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+    color: #c62828;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.tracking-cancel-button:hover {
+    background-color: #c62828;
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+.tracking-cancel-button:active {
+    transform: translateY(0);
+}
+
+/* ==============================
+   PEDIDO REALIZADO
+============================== */
+
+.order-success-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+    background-color:
+        rgba(0, 0, 0, 0.55);
+
+    z-index: 5000;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+}
+
+.order-success-overlay.active {
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+}
+
+.order-success-modal {
+    position: relative;
+
+    width: 100%;
+
+    max-width: 500px;
+
+    padding: 35px 30px;
+
+    background-color: #ffffff;
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 15px 50px rgba(0, 0, 0, 0.25);
+
+    text-align: center;
+}
+
+.order-success-icon {
+    width: 70px;
+
+    height: 70px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin: 0 auto 20px;
+
+    border-radius: 50%;
+
+    background-color: #fff4e5;
+
+    font-size: 36px;
+}
+
+.order-success-modal h2 {
+    margin-bottom: 15px;
+
+    font-size: 28px;
+
+    color: #222222;
+}
+
+.order-success-message {
+    margin-bottom: 10px;
+
+    font-size: 18px;
+
+    color: #333333;
+}
+
+.success-order-number {
+    color: #c62828;
+
+    font-weight: 700;
+}
+
+.order-success-description {
+    margin-bottom: 25px;
+
+    color: #666666;
+
+    font-size: 15px;
+
+    line-height: 1.5;
+}
+
+.order-success-actions {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.success-track-button {
+    width: 100%;
+
+    padding: 13px 20px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background-color: #c62828;
+
+    color: #ffffff;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.success-track-button:hover {
+    background-color: #a00000;
+
+    transform: translateY(-1px);
+}
+
+.success-close-button {
+    width: 100%;
+
+    padding: 12px 20px;
+
+    border: 1px solid #dddddd;
+
+    border-radius: 8px;
+
+    background-color: #f5f5f5;
+
+    color: #333333;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.success-close-button:hover {
+    background-color: #eeeeee;
+
+    border-color: #cccccc;
+}
 
 /* ==============================
    RESPONSIVO
@@ -2217,4 +2607,50 @@ button {
         font-size: 11px;
     }
 
+    .track-order-button {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .tracking-modal {
+        padding: 25px 20px;
+    }
+
+    .tracking-modal h2 {
+        font-size: 22px;
+    }
+
+    .tracking-description {
+        font-size: 14px;
+    }
+
+    /* PEDIDO REALIZADO */
+
+    .order-success-modal {
+        padding: 28px 20px;
+    }
+
+    .order-success-modal h2 {
+        font-size: 23px;
+    }
+
+    .order-success-message {
+        font-size: 17px;
+    }
+
+    .order-success-description {
+        font-size: 14px;
+    }
+
+    /* CANCELAMENTO DO PEDIDO */
+
+    .tracking-cancel-container {
+        margin-top: 15px;
+    }
+
+    .tracking-cancel-button {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
 }
