@@ -280,7 +280,6 @@
 
                 </div>
 
-
             </section>
 
 
@@ -747,6 +746,25 @@
                     </form>
 
 
+                </div>
+
+                <div class="admin-settings-card" style="margin-top: 24px;">
+                    <h3>Segurança da conta</h3>
+                    <p>Altere a senha usada para acessar este painel.</p>
+                    <form id="changePasswordForm" style="max-width: 520px; margin-top: 20px;">
+                        <div class="product-form-group">
+                            <label for="changePassword">Nova senha</label>
+                            <input type="password" id="changePassword" autocomplete="new-password" minlength="8" required>
+                        </div>
+                        <div class="product-form-group">
+                            <label for="confirmChangePassword">Confirme a nova senha</label>
+                            <input type="password" id="confirmChangePassword" autocomplete="new-password" minlength="8" required>
+                        </div>
+                        <p id="changePasswordMessage" role="status" aria-live="polite"></p>
+                        <div class="product-form-actions">
+                            <button type="submit" class="product-save-button">Alterar senha</button>
+                        </div>
+                    </form>
                 </div>
 
 

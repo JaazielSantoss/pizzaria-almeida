@@ -90,6 +90,29 @@
 
             </form>
 
+            <form id="passwordRecoveryForm" class="password-recovery-form" hidden>
+                <div class="login-form-group">
+                    <label for="recoveryEmail">E-mail da conta</label>
+                    <input type="email" id="recoveryEmail" placeholder="Digite seu e-mail" autocomplete="email" required>
+                </div>
+                <button type="submit" class="admin-login-button">Enviar link de recuperação</button>
+            </form>
+
+            <form id="resetPasswordForm" hidden>
+                <div class="login-form-group">
+                    <label for="newPassword">Nova senha</label>
+                    <input type="password" id="newPassword" autocomplete="new-password" minlength="8" required>
+                </div>
+                <div class="login-form-group">
+                    <label for="confirmPassword">Confirme a nova senha</label>
+                    <input type="password" id="confirmPassword" autocomplete="new-password" minlength="8" required>
+                </div>
+                <button type="submit" class="admin-login-button">Salvar nova senha</button>
+            </form>
+
+            <p id="loginMessage" class="login-message" role="status" aria-live="polite"></p>
+            <button type="button" id="forgotPasswordButton" class="forgot-password-button">Esqueci a minha senha</button>
+
 
             <p class="admin-login-footer">
                 Acesso restrito ao administrador

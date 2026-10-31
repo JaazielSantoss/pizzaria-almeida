@@ -3340,6 +3340,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
 
+    const changePasswordForm = document.querySelector("#changePasswordForm");
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const password = document.querySelector("#changePassword").value;
+            const confirmation = document.querySelector("#confirmChangePassword").value;
+            const message = document.querySelector("#changePasswordMessage");
+            if (password.length < 8) {
+                message.textContent = "A senha precisa ter pelo menos 8 caracteres.";
+                return;
+            }
+            if (password !== confirmation) {
+                message.textContent = "As senhas não coincidem.";
+                return;
+            }
+            const button = changePasswordForm.querySelector("button[type='submit']");
+            button.disabled = true;
+            const { error } = await supabaseClient.auth.updateUser({ password });
+            button.disabled = false;
+            if (error) {
+                message.textContent = "Não foi possível alterar a senha. Tente novamente.";
+                console.error("Erro ao alterar senha:", error);
+                return;
+            }
+            changePasswordForm.reset();
+            message.textContent = "Senha alterada com sucesso.";
+        });
+    }
+
 
     /* =========================================
        MODAL BASE DO PRODUTO

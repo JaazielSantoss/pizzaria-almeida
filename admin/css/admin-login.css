@@ -239,6 +239,28 @@ body {
     color: #999999;
 }
 
+.forgot-password-button {
+    display: block;
+    margin: 16px auto 0;
+    border: 0;
+    background: transparent;
+    color: #a00000;
+    font-size: 14px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.login-message {
+    min-height: 18px;
+    margin-top: 14px;
+    color: #555;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+[hidden] { display: none !important; }
+
 
 /* =========================================
    RESPONSIVO
