@@ -142,7 +142,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     function applyUserPermissions() {
 
         const isAdmin =
-            currentUserRole === "admin";
+            currentUserRole === "admin" ||
+            currentUserRole === "super_admin";
 
 
         /* =========================================
@@ -302,7 +303,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ========================================= */
 
                     if (
-                        currentUserRole !== "admin" &&
+                        !["admin", "super_admin"].includes(currentUserRole) &&
                         (
                             sectionName ===
                             "orders" ||
@@ -746,8 +747,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ========================================= */
 
         if (
-            currentUserRole !==
-            "admin"
+            !["admin", "super_admin"].includes(currentUserRole)
         ) {
 
             editButton.style.display =
@@ -1353,8 +1353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ========================================= */
 
         if (
-            currentUserRole !==
-            "admin"
+            !["admin", "super_admin"].includes(currentUserRole)
         ) {
 
             editButton.style.display =
